@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
+from fastapi import Depends, HTTPException, Path
 from typing import Annotated, Any, Generic, Type
 
-from fastapi import Depends, HTTPException, Path
 from models.mixins import (
     T,
     ActionResponse,

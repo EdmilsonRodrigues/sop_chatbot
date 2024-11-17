@@ -1,9 +1,10 @@
-from typing import Annotated
+from fastapi import Body, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
 from fastapi.routing import APIRouter
-from fastapi import Body, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-from models.users import Admin, CreateAdminRequest, User
+from typing import Annotated
+
+from models.users import Admin, AdminResponse, CreateAdminRequest, User
 from services.auth import AuthResponse, Auth
 
 
@@ -34,7 +35,7 @@ async def login(login: Annotated[OAuth2PasswordRequestForm, Depends()]):
     return AuthResponse(access_token=jwt)
 
 
-@router.post("/signup", response_model=User, response_class=ORJSONResponse)
+@router.post("/signup", response_model=AdminResponse, response_class=ORJSONResponse)
 async def signup(
     create_user_request: Annotated[
         CreateAdminRequest, Body(description="The user to create")

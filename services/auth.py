@@ -1,8 +1,8 @@
+import jwt
+
 from datetime import UTC, datetime, timedelta
 from fastapi.security import OAuth2PasswordBearer
-import jwt
 from hashlib import sha256
-
 from pydantic import BaseModel
 
 from config import SECRET_KEY

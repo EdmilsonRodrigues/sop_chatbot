@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
-from typing import Annotated, Any
+from typing import Annotated
 from pydantic import EmailStr, Field
-from pydantic.json_schema import GenerateJsonSchema
 from models.mixins import BaseClass, BaseRequest
 from services.auth import Auth
 from session import db
@@ -45,6 +44,10 @@ class CommonUserRequest(BaseRequest):
 
 class BaseUser(BaseClass, CreateUserRequest, ABC):
     @classmethod
+    def table_name(cls):
+        return "users"
+
+    @classmethod
     async def create(cls, create_request: CreateUserRequest, owner: str | None = None):
         created_at = datetime.now()
         updated_at = datetime.now()
@@ -62,7 +65,7 @@ class BaseUser(BaseClass, CreateUserRequest, ABC):
             )
         ).inserted_id
         self = cls(
-            id=id,
+            id=str(id),
             registration=registration,
             owner=updated_owner,
             created_at=created_at,
@@ -72,20 +75,6 @@ class BaseUser(BaseClass, CreateUserRequest, ABC):
         return self
 
     @classmethod
-    def model_json_schema(
-        cls,
-        by_alias: bool = True,
-        ref_template: EmailStr = ...,
-        schema_generator: type[GenerateJsonSchema] = ...,
-        mode: EmailStr | EmailStr = "validation",
-    ) -> dict[str, Any]:
-        schema = super().model_json_schema(
-            by_alias, ref_template, schema_generator, mode
-        )
-        schema["properties"].pop("password", None)
-        schema["required"].remove("password")
-        return schema
-
     @abstractmethod
     async def gen_registration(cls, owner: str | None) -> tuple[str, str]:
         pass
@@ -112,7 +101,31 @@ class BaseUser(BaseClass, CreateUserRequest, ABC):
         return self.role == UserRoles.MANAGER or self.is_admin
 
 
+class UserResponse(BaseClass):
+    registration: Annotated[str, Field(description="The registration of the user")]
+    owner: Annotated[str, Field(description="The owner of the user")]
+    name: Annotated[str, Field(description="The name of the user")]
+    department: Annotated[str, Field(description="The department of the user")]
+    company: Annotated[str | None, Field(description="The company of the user")] = None
+    role: Annotated[UserRoles, Field(description="The role of the user")] = (
+        UserRoles.USER
+    )
+
+    def gen_registration(cls, owner: EmailStr, **kwargs):
+        return super().gen_registration(owner, **kwargs)
+
+
+class AdminResponse(UserResponse):
+    email: Annotated[
+        EmailStr,
+        Field(
+            description="The email of the user. Only the owner of the plan has their email registrationed"
+        ),
+    ]
+
+
 class User(BaseUser, CommonUserRequest):
+    @classmethod
     async def gen_registration(cls, owner: str) -> tuple[str, str]:
         pipeline = [
             {"$match": {"owner": owner}},
@@ -160,9 +173,10 @@ class User(BaseUser, CommonUserRequest):
 
 
 class Admin(BaseUser, CreateAdminRequest):
+    @classmethod
     async def gen_registration(cls, owner: None) -> tuple[str, str]:
         registration = "001."
-        all_users = await db[cls.table_name()].count_documents()
+        all_users = await db[cls.table_name()].count_documents({})
         registration += str(all_users + 1).zfill(4)
         registration += ".000"
         return registration, registration

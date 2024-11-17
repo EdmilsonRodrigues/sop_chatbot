@@ -1,7 +1,10 @@
 import asyncio
+
 from contextlib import asynccontextmanager
-from config import APP, DEBUG, DESCRIPTION, VERSION
 from fastapi import FastAPI
+from pydantic import BaseModel
+
+from config import APP, DEBUG, DESCRIPTION, VERSION
 from routes.api import router as api_router
 from migrations.indexes import create_indexes
 from migrations.migrations import run_migrations
@@ -31,7 +34,11 @@ app = FastAPI(
 app.include_router(api_router)
 
 
-@app.get("/", response_model={"version": str}, tags=["Version"])
+class VersionInfo(BaseModel):
+    version: str
+
+
+@app.get("/", response_model=VersionInfo, tags=["Version"])
 def version():
     return {"version": VERSION}
 

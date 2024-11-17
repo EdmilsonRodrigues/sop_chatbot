@@ -128,7 +128,7 @@ class BaseClass(BaseRequest, ABC):
                 **obj,
             )
         return None
-    
+
     @classmethod
     async def get_by_field(cls, key: str, value: Any):
         obj = await db[cls.table_name()].find_one({key: value})
