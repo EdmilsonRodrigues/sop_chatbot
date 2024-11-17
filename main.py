@@ -2,7 +2,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from config import APP, DEBUG, DESCRIPTION, VERSION
 from fastapi import FastAPI
-
+from routes.api import router as api_router
 from migrations.indexes import create_indexes
 from migrations.migrations import run_migrations
 
@@ -25,11 +25,10 @@ app = FastAPI(
     description=DESCRIPTION,
     debug=DEBUG,
     lifespan=lifespan,
-    tags=tags_info,
+    openapi_tags=tags_info,
 )
 
-
-# Add routes here
+app.include_router(api_router)
 
 
 @app.get("/", response_model={"version": str}, tags=["Version"])

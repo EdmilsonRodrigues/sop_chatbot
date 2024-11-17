@@ -3,26 +3,33 @@ from fastapi.security import OAuth2PasswordBearer
 import jwt
 from hashlib import sha256
 
+from pydantic import BaseModel
+
 from config import SECRET_KEY
 
 
 oauth_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
+class AuthResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
 class Auth:
     @staticmethod
-    def generate_jwt(user_register: str) -> str:
+    def generate_jwt(user_registration: str) -> str:
         """
         Generate a JSON Web Token (JWT) for the user.
 
-        :param user_register: The user's register.
+        :param user_registration: The user's registration.
         :type user_id: str
 
         :return: The JWT.
         :rtype: str
         """
         payload = {
-            "user_register": user_register,
+            "user_registration": user_registration,
             "exp": datetime.now(UTC) + timedelta(days=7),
             "secret": SECRET_KEY,
         }

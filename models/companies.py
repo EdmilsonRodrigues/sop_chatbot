@@ -18,10 +18,10 @@ class Company(BaseClass, CreateCompanyRequest):
     def table_name(cls):
         return "companies"
 
-    async def gen_register(cls, owner: str, **kwargs):
-        register = "002."
+    async def gen_registration(cls, owner: str, **kwargs):
+        registration = "002."
         owner_part = owner.split(".")[1]
-        register += owner_part + "."
+        registration += owner_part + "."
         all_companies = await db[cls.table_name()].count_documents({"owner": owner})
-        register += str(all_companies + 1).zfill(3)
-        return register
+        registration += str(all_companies + 1).zfill(3)
+        return registration

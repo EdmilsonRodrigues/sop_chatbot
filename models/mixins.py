@@ -43,7 +43,9 @@ class BaseClass(BaseRequest, ABC):
     id: Annotated[
         str, Field(min_length=24, max_length=24, description="The id of the object")
     ]
-    register: Annotated[str, Field(description="The registration string of the object")]
+    registration: Annotated[
+        str, Field(description="The registration string of the object")
+    ]
     created_at: Annotated[
         datetime, Field(description="The date and time the object was created")
     ]
@@ -89,12 +91,12 @@ class BaseClass(BaseRequest, ABC):
     async def create(cls, create_request: BaseRequest, owner: str, **kwargrs):
         created_at = datetime.now()
         updated_at = datetime.now()
-        register = await cls.gen_register(owner)
+        registration = await cls.gen_registration(owner)
         id = (
             await db[cls.table_name()].insert_one(
                 {
                     **create_request.mongo(),
-                    "register": register,
+                    "registration": registration,
                     "owner": owner,
                     "created_at": created_at,
                     "updated_at": updated_at,
@@ -106,7 +108,7 @@ class BaseClass(BaseRequest, ABC):
             id=id,
             created_at=created_at,
             updated_at=updated_at,
-            register=register,
+            registration=registration,
             owner=owner,
             **create_request.model_dump(),
             **kwargrs,
@@ -114,17 +116,25 @@ class BaseClass(BaseRequest, ABC):
         return self
 
     @abstractmethod
-    async def gen_register(cls, owner: str, **kwargs):
+    async def gen_registration(cls, owner: str, **kwargs):
         pass
 
     @classmethod
-    async def get(cls, register: str):
-        obj = await db[cls.table_name()].find_one({"register": register})
+    async def get(cls, registration: str):
+        obj = await db[cls.table_name()].find_one({"registration": registration})
         if obj:
             return cls(
                 id=str(obj["_id"]),
-                created_at=obj["created_at"],
-                updated_at=obj["updated_at"],
+                **obj,
+            )
+        return None
+    
+    @classmethod
+    async def get_by_field(cls, key: str, value: Any):
+        obj = await db[cls.table_name()].find_one({key: value})
+        if obj:
+            return cls(
+                id=str(obj["_id"]),
                 **obj,
             )
         return None
@@ -166,8 +176,8 @@ class BaseClass(BaseRequest, ABC):
         return PaginatedResponse(pagination=pagination, results=results)
 
     @classmethod
-    async def delete(cls, register: str) -> ActionResponse:
-        await db[cls.table_name()].delete_one({"register": register})
+    async def delete(cls, registration: str) -> ActionResponse:
+        await db[cls.table_name()].delete_one({"registration": registration})
         return ActionResponse(
             action="delete", message=f"{cls.__name__} deleted successfully"
         )

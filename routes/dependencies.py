@@ -14,7 +14,7 @@ from services.auth import oauth_scheme, Auth
 
 async def session_dependency(token: Annotated[str, Depends(oauth_scheme)]) -> User:
     payload = Auth().decode_jwt(token)
-    user = await User.get(payload["user_register"])
+    user = await User.get(payload["user_registration"])
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid token")
     return user
@@ -79,16 +79,14 @@ class ObjectDependency(Dependency, Generic[T]):
 
     async def __call__(
         self,
-        id: Annotated[
+        registration: Annotated[
             str,
             Path(
-                min_length=24,
-                max_length=24,
-                description="The id of the object being fetched.",
+                description="The registration of the object being fetched.",
             ),
         ],
     ) -> T:
-        obj = await self.cls.get(id)
+        obj = await self.cls.get(registration)
 
         if obj is None:
             raise HTTPException(
