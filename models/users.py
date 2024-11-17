@@ -79,6 +79,19 @@ class BaseUser(BaseClass, CreateUserRequest, ABC):
     async def gen_registration(cls, owner: str | None) -> tuple[str, str]:
         pass
 
+    @classmethod
+    async def get(cls, registration: str):
+        obj = await db[cls.table_name()].find_one({"registration": registration})
+        if obj:
+            if not obj.get("company"):
+                obj["company"] = ""
+            return cls(
+                id=str(obj["_id"]),
+                **obj,
+            )
+        return None
+
+
     def json(self) -> dict:
         dump = super().json()
         dump.pop("password", None)

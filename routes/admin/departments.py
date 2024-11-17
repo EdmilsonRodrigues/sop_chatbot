@@ -1,4 +1,4 @@
 from fastapi import APIRouter
 
 
-router = APIRouter(prefix="/departments", tags=["Departments"])
+router = APIRouter(prefix="/departments", tags=["Admin: Departments"])

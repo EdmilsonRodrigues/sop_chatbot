@@ -12,6 +12,14 @@ from migrations.migrations import run_migrations
 
 tags_info = [
     {"name": "Version", "description": "Version information"},
+    {"name": "Auth", "description": "Authentication related operations"},
+    {"name": "Admin", "description": "Operations for administrators"},
+    {"name": "Users", "description": "Users related operations"},
+    {"name": "Admin: Users", "description": "Users related operations for administrators"},
+    {"name": "Companies", "description": "Companies related operations"},
+    {"name": "Admin: Companies", "description": "Companies related operations for administrators"},
+    {"name": "Departments", "description": "Departments related operations"},
+    {"name": "Admin: Departments", "description": "Departments related operations for administrators"},
 ]
 
 

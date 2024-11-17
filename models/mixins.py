@@ -141,17 +141,19 @@ class BaseClass(BaseRequest, ABC):
 
     @classmethod
     async def get_all(
-        cls, pagination_request: PaginationRequest
+        cls, pagination_request: PaginationRequest, owner: str, user_registration: str | None = None, **kwargs
     ) -> "PaginatedResponse":
-        find = {}
+        find = {"owner": owner}
+        if user_registration is not None:
+            find["users"] = {"$in": [user_registration]}
         if pagination_request.query:
             regex = {"$regex": pagination_request.value, "$options": "i"}
-            find = {
+            find.update({
                 "$or": [
                     {"$text": {"$search": pagination_request.value}},
                     {pagination_request.query: regex},
                 ]
-            }
+            })
         objs = (
             db[cls.table_name()]
             .find(find)
