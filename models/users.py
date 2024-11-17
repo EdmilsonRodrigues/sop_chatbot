@@ -31,8 +31,6 @@ class CreateUserRequest(BaseRequest):
 
 
 class User(BaseClass, CreateUserRequest):
-    owner: Annotated[str, Field(description="The owner of the user account")]
-
     @classmethod
     async def create(cls, create_request: CreateUserRequest, owner: str | None = None):
         created_at = datetime.now()
@@ -66,7 +64,7 @@ class User(BaseClass, CreateUserRequest):
         )
         return self
 
-    async def gen_register(cls, create_request: BaseRequest, owner: str):
+    async def gen_register(cls, owner: str):
         pipeline = [
             {"$match": {"owner": owner}},
             {
@@ -118,6 +116,14 @@ class User(BaseClass, CreateUserRequest):
         dump = super().mongo()
         dump.pop("password", None)
         return dump
+
+    @property
+    def is_admin(self) -> bool:
+        return self.role == UserRoles.ADMIN
+
+    @property
+    def is_manager(self) -> bool:
+        return self.role == UserRoles.MANAGER or self.is_admin
 
 
 class UpdateUserRequest(BaseRequest):

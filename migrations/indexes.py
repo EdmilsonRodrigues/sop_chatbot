@@ -7,8 +7,12 @@ async def create_indexes():
         db.users.create_indexes(
             [{"key": {"email": 1}}, {"key": {"register": 1}}, {"key": {"name": "text"}}]
         ),
-        db.companies.create_indexes([{"key": {"name": "text"}}]),
-        db.departments.create_indexes([{"key": {"name": "text"}}]),
+        db.companies.create_indexes(
+            [{"key": {"name": "text"}}, {"key": {"register": 1}}]
+        ),
+        db.departments.create_indexes(
+            [{"key": {"name": "text"}}, {"key": {"register": 1}}]
+        ),
     )
 
 

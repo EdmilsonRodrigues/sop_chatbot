@@ -50,6 +50,7 @@ class BaseClass(BaseRequest, ABC):
     updated_at: Annotated[
         datetime, Field(description="The date and time the object was last updated")
     ]
+    owner: Annotated[str, Field(description="The owner of the account")]
 
     @classmethod
     def table_name(cls):
@@ -85,17 +86,19 @@ class BaseClass(BaseRequest, ABC):
         return self
 
     @classmethod
-    async def create(cls, create_request: BaseRequest, **kwargrs):
+    async def create(cls, create_request: BaseRequest, owner: str, **kwargrs):
         created_at = datetime.now()
         updated_at = datetime.now()
-        register = await cls.gen_register(create_request)
+        register = await cls.gen_register(owner)
         id = (
             await db[cls.table_name()].insert_one(
                 {
                     **create_request.mongo(),
                     "register": register,
+                    "owner": owner,
                     "created_at": created_at,
                     "updated_at": updated_at,
+                    **kwargrs,
                 }
             )
         ).inserted_id
@@ -104,17 +107,19 @@ class BaseClass(BaseRequest, ABC):
             created_at=created_at,
             updated_at=updated_at,
             register=register,
+            owner=owner,
             **create_request.model_dump(),
+            **kwargrs,
         )
         return self
 
     @abstractmethod
-    async def gen_register(cls, create_request: BaseRequest, **kwargs):
+    async def gen_register(cls, owner: str, **kwargs):
         pass
 
     @classmethod
-    async def get(cls, id: str):
-        obj = await db[cls.table_name()].find_one({"_id": ObjectId(id)})
+    async def get(cls, register: str):
+        obj = await db[cls.table_name()].find_one({"register": register})
         if obj:
             return cls(
                 id=str(obj["_id"]),
@@ -161,8 +166,8 @@ class BaseClass(BaseRequest, ABC):
         return PaginatedResponse(pagination=pagination, results=results)
 
     @classmethod
-    async def delete(cls, id: str) -> ActionResponse:
-        await db[cls.table_name()].delete_one({"_id": ObjectId(id)})
+    async def delete(cls, register: str) -> ActionResponse:
+        await db[cls.table_name()].delete_one({"register": register})
         return ActionResponse(
             action="delete", message=f"{cls.__name__} deleted successfully"
         )

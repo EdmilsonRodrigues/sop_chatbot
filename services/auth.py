@@ -11,18 +11,18 @@ oauth_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 class Auth:
     @staticmethod
-    def generate_jwt(user_id: int | str) -> str:
+    def generate_jwt(user_register: str) -> str:
         """
         Generate a JSON Web Token (JWT) for the user.
 
-        :param user_id: The user's ID.
-        :type user_id: int | str
+        :param user_register: The user's register.
+        :type user_id: str
 
         :return: The JWT.
         :rtype: str
         """
         payload = {
-            "user_id": user_id,
+            "user_register": user_register,
             "exp": datetime.now(UTC) + timedelta(days=7),
             "secret": SECRET_KEY,
         }

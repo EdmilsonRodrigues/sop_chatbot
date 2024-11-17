@@ -8,19 +8,30 @@ from models.mixins import (
     PaginatedResponse,
     PaginationRequest,
 )
+from models.users import User
 from services.auth import oauth_scheme, Auth
 
 
-def session_dependency(token: Annotated[str, Depends(oauth_scheme)]):
+async def session_dependency(token: Annotated[str, Depends(oauth_scheme)]) -> User:
     payload = Auth().decode_jwt(token)
-    # Do something with the payload
-    pass
+    user = await User.get(payload["user_register"])
+    if user is None:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    return user
 
 
-def admin_dependency(token: Annotated[str, Depends(oauth_scheme)]):
-    session = session_dependency(token)
-    # Do something with the session
-    pass
+async def admin_dependency(token: Annotated[str, Depends(oauth_scheme)]):
+    session = await session_dependency(token)
+    if session._is_admin:
+        return session
+    raise HTTPException(status_code=403, detail="Unauthorized")
+
+
+async def manager_dependency(token: Annotated[str, Depends(oauth_scheme)]):
+    session = await session_dependency(token)
+    if session._is_manager:
+        return session
+    raise HTTPException(status_code=403, detail="Unauthorized")
 
 
 class Dependency(ABC):
