@@ -14,7 +14,7 @@ tags_info = [
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    asyncio.gather(create_indexes(), run_migrations())
+    await asyncio.gather(create_indexes(), run_migrations())
     yield
     # Application shutdown
 

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Annotated, Any, Generic, Type
 
 from fastapi import Depends, HTTPException, Path
-from routes.mixins import (
+from models.mixins import (
     T,
     ActionResponse,
     PaginatedResponse,

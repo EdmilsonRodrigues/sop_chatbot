@@ -1,8 +1,8 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
-from typing import Any, Generic, TypeVar
-from pydantic import BaseModel
+from typing import Annotated, Any, Generic, TypeVar
+from pydantic import BaseModel, Field
 from bson import ObjectId
 from session import db
 
@@ -40,9 +40,16 @@ class BaseRequest(BaseModel, ABC):
 
 
 class BaseClass(BaseRequest, ABC):
-    id: int  # str if using UUID or ObjectId
-    created_at: datetime
-    updated_at: datetime
+    id: Annotated[
+        str, Field(min_length=24, max_length=24, description="The id of the object")
+    ]
+    register: Annotated[str, Field(description="The registration string of the object")]
+    created_at: Annotated[
+        datetime, Field(description="The date and time the object was created")
+    ]
+    updated_at: Annotated[
+        datetime, Field(description="The date and time the object was last updated")
+    ]
 
     @classmethod
     def table_name(cls):
@@ -78,13 +85,15 @@ class BaseClass(BaseRequest, ABC):
         return self
 
     @classmethod
-    async def create(cls, create_request: BaseRequest):
+    async def create(cls, create_request: BaseRequest, **kwargrs):
         created_at = datetime.now()
         updated_at = datetime.now()
+        register = await cls.gen_register(create_request)
         id = (
             await db[cls.table_name()].insert_one(
                 {
                     **create_request.mongo(),
+                    "register": register,
                     "created_at": created_at,
                     "updated_at": updated_at,
                 }
@@ -94,9 +103,14 @@ class BaseClass(BaseRequest, ABC):
             id=id,
             created_at=created_at,
             updated_at=updated_at,
+            register=register,
             **create_request.model_dump(),
         )
         return self
+
+    @abstractmethod
+    async def gen_register(cls, create_request: BaseRequest, **kwargs):
+        pass
 
     @classmethod
     async def get(cls, id: str):
