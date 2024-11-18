@@ -57,7 +57,7 @@ async def update_department(
     return department.json()
 
 
-@router.delete("/{registration}", include_in_schema=False)
+@router.delete("/{registration}")
 async def delete_department(
     department: Annotated[Department, Depends(delete_dependency)],
 ):

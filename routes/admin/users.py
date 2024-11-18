@@ -49,6 +49,6 @@ async def update_user(
     return user.json()
 
 
-@router.delete("/{registration}", include_in_schema=False)
+@router.delete("/{registration}")
 async def delete_user(user: Annotated[User, Depends(delete_dependency)]):
     return await user.delete()
