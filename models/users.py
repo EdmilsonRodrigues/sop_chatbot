@@ -91,7 +91,6 @@ class BaseUser(BaseClass, CreateUserRequest, ABC):
             )
         return None
 
-
     def json(self) -> dict:
         dump = super().json()
         dump.pop("password", None)

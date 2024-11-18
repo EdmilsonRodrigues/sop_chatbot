@@ -7,6 +7,13 @@ from bson import ObjectId
 from session import db
 
 
+CLASS_MAPPING = {
+    "User": "001",
+    "Company": "002",
+    "Department": "003",
+}
+
+
 class ActionResponse(BaseModel):
     action: str
     message: str
@@ -115,9 +122,15 @@ class BaseClass(BaseRequest, ABC):
         )
         return self
 
+    @classmethod
     @abstractmethod
     async def gen_registration(cls, owner: str, **kwargs):
-        pass
+        registration = CLASS_MAPPING[cls.__name__] + "."
+        owner_part = owner.split(".")[1]
+        registration += owner_part + "."
+        all_companies = await db[cls.table_name()].count_documents({"owner": owner})
+        registration += str(all_companies + 1).zfill(3)
+        return registration
 
     @classmethod
     async def get(cls, registration: str):
@@ -141,19 +154,25 @@ class BaseClass(BaseRequest, ABC):
 
     @classmethod
     async def get_all(
-        cls, pagination_request: PaginationRequest, owner: str, user_registration: str | None = None, **kwargs
+        cls,
+        pagination_request: PaginationRequest,
+        owner: str,
+        user_registration: str | None = None,
+        **kwargs,
     ) -> "PaginatedResponse":
         find = {"owner": owner}
         if user_registration is not None:
             find["users"] = {"$in": [user_registration]}
         if pagination_request.query:
             regex = {"$regex": pagination_request.value, "$options": "i"}
-            find.update({
-                "$or": [
-                    {"$text": {"$search": pagination_request.value}},
-                    {pagination_request.query: regex},
-                ]
-            })
+            find.update(
+                {
+                    "$or": [
+                        {"$text": {"$search": pagination_request.value}},
+                        {pagination_request.query: regex},
+                    ]
+                }
+            )
         objs = (
             db[cls.table_name()]
             .find(find)
@@ -177,11 +196,10 @@ class BaseClass(BaseRequest, ABC):
         )
         return PaginatedResponse(pagination=pagination, results=results)
 
-    @classmethod
-    async def delete(cls, registration: str) -> ActionResponse:
-        await db[cls.table_name()].delete_one({"registration": registration})
+    async def delete(self) -> ActionResponse:
+        await db[self.table_name()].delete_one({"registration": self.registration})
         return ActionResponse(
-            action="delete", message=f"{cls.__name__} deleted successfully"
+            action="delete", message=f"{self.__class__.__name__} deleted successfully"
         )
 
 
@@ -191,3 +209,9 @@ T = TypeVar("T", bound=BaseClass)
 class PaginatedResponse(BaseModel, Generic[T]):
     pagination: Pagination
     results: list[T]
+
+    def json(self):
+        return {
+            "pagination": self.pagination.model_dump(),
+            "results": [result.json() for result in self.results],
+        }

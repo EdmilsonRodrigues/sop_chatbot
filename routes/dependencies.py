@@ -54,9 +54,7 @@ class AdminListDependency(Dependency, Generic[T]):
 
     async def __call__(
         self,
-        session_dependency: Annotated[
-            User, Depends(admin_dependency)
-        ],
+        session_dependency: Annotated[User, Depends(admin_dependency)],
         skip: Annotated[int, Path(description="The number of objects to skip.")] = 0,
         limit: Annotated[
             int, Path(description="The number of objects to return.")
@@ -67,7 +65,7 @@ class AdminListDependency(Dependency, Generic[T]):
         value: Annotated[
             Any, Path(description="The value to filter the objects.")
         ] = None,
-    ) -> PaginatedResponse:
+    ) -> PaginatedResponse[T]:
         pagination = PaginationRequest(skip=skip, limit=limit, query=query, value=value)
         return await self.cls.get_all(pagination, owner=session_dependency.registration)
 
@@ -83,9 +81,9 @@ class ListDependency(Dependency, Generic[T]):
     async def __call__(
         self,
         skip: Annotated[int, Path(description="The number of objects to skip.")] = 0,
-        session_dependency: Annotated[
-            User, Depends(session_dependency)
-        ] = Depends(session_dependency),
+        session_dependency: Annotated[User, Depends(session_dependency)] = Depends(
+            session_dependency
+        ),
         limit: Annotated[
             int, Path(description="The number of objects to return.")
         ] = 10,
@@ -95,9 +93,13 @@ class ListDependency(Dependency, Generic[T]):
         value: Annotated[
             Any, Path(description="The value to filter the objects.")
         ] = None,
-    ) -> PaginatedResponse:
+    ) -> PaginatedResponse[T]:
         pagination = PaginationRequest(skip=skip, limit=limit, query=query, value=value)
-        return await self.cls.get_all(pagination, owner=session_dependency.owner, user_registration=session_dependency.registration)
+        return await self.cls.get_all(
+            pagination,
+            owner=session_dependency.owner,
+            user_registration=session_dependency.registration,
+        )
 
 
 class ObjectDependency(Dependency, Generic[T]):
@@ -124,7 +126,7 @@ class ObjectDependency(Dependency, Generic[T]):
             raise HTTPException(
                 status_code=404, detail=f"{self.cls.__name__} does not exist"
             )
-        
+
         users: list[str] = getattr(obj, "users", [])
         if session.registration not in users:
             raise HTTPException(status_code=403, detail="Unauthorized")
@@ -156,7 +158,7 @@ class AdminObjectDependency(Dependency, Generic[T]):
             raise HTTPException(
                 status_code=404, detail=f"{self.cls.__name__} does not exist"
             )
-        
+
         if obj.owner != session.registration:
             raise HTTPException(status_code=403, detail="Unauthorized")
 
