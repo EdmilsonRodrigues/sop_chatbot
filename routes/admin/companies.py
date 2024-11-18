@@ -32,10 +32,13 @@ async def get_companies(
 async def create_company(
     request: CreateCompanyRequest, session: Annotated[User, Depends(admin_dependency)]
 ):
+    if session.company:
+        raise HTTPException(status_code=403, detail="Users can only have one company")
     company = await Company.create(
         create_request=request,
         owner=session.registration,
     )
+    await session.update({"company": company.registration})
     return company.json()
 
 

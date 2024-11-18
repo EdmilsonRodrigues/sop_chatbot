@@ -9,10 +9,6 @@ class CreateCompanyRequest(BaseRequest):
 
 
 class Company(BaseClass, CreateCompanyRequest):
-    users: Annotated[
-        list[str], Field(description="The list of users in the company")
-    ] = []
-
     @classmethod
     def table_name(cls):
         return "companies"

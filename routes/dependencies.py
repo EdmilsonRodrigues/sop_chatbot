@@ -22,14 +22,14 @@ async def session_dependency(token: Annotated[str, Depends(oauth_scheme)]) -> Us
 
 async def admin_dependency(token: Annotated[str, Depends(oauth_scheme)]):
     session = await session_dependency(token)
-    if session._is_admin:
+    if session.is_admin:
         return session
     raise HTTPException(status_code=403, detail="Unauthorized")
 
 
 async def manager_dependency(token: Annotated[str, Depends(oauth_scheme)]):
     session = await session_dependency(token)
-    if session._is_manager:
+    if session.is_manager:
         return session
     raise HTTPException(status_code=403, detail="Unauthorized")
 
@@ -42,32 +42,6 @@ class Dependency(ABC):
     @abstractmethod
     def __call__(self, *args: Any, **kwds: Any) -> Any:
         pass
-
-
-class AdminListDependency(Dependency, Generic[T]):
-    """
-    Dependency to get a list of objects.
-    """
-
-    def __init__(self, cls: Type[T]) -> None:
-        self.cls = cls
-
-    async def __call__(
-        self,
-        session_dependency: Annotated[User, Depends(admin_dependency)],
-        skip: Annotated[int, Path(description="The number of objects to skip.")] = 0,
-        limit: Annotated[
-            int, Path(description="The number of objects to return.")
-        ] = 10,
-        query: Annotated[
-            str, Path(description="The query to filter the objects.")
-        ] = None,
-        value: Annotated[
-            Any, Path(description="The value to filter the objects.")
-        ] = None,
-    ) -> PaginatedResponse[T]:
-        pagination = PaginationRequest(skip=skip, limit=limit, query=query, value=value)
-        return await self.cls.get_all(pagination, owner=session_dependency.registration)
 
 
 class ListDependency(Dependency, Generic[T]):
@@ -102,6 +76,28 @@ class ListDependency(Dependency, Generic[T]):
         )
 
 
+class AdminListDependency(ListDependency[T]):
+    """
+    Dependency to get a list of objects.
+    """
+    async def __call__(
+        self,
+        session_dependency: Annotated[User, Depends(admin_dependency)],
+        skip: Annotated[int, Path(description="The number of objects to skip.")] = 0,
+        limit: Annotated[
+            int, Path(description="The number of objects to return.")
+        ] = 10,
+        query: Annotated[
+            str, Path(description="The query to filter the objects.")
+        ] = None,
+        value: Annotated[
+            Any, Path(description="The value to filter the objects.")
+        ] = None,
+    ) -> PaginatedResponse[T]:
+        pagination = PaginationRequest(skip=skip, limit=limit, query=query, value=value)
+        return await self.cls.get_all(pagination, owner=session_dependency.registration)
+
+
 class ObjectDependency(Dependency, Generic[T]):
     """
     Dependency to get an object by id.
@@ -134,14 +130,10 @@ class ObjectDependency(Dependency, Generic[T]):
         return obj
 
 
-class AdminObjectDependency(Dependency, Generic[T]):
+class AdminObjectDependency(ObjectDependency[T]):
     """
     Dependency to get an object by id.
     """
-
-    def __init__(self, cls: Type[T]) -> None:
-        self.cls = cls
-
     async def __call__(
         self,
         session: Annotated[User, Depends(admin_dependency)],

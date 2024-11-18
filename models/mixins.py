@@ -112,7 +112,7 @@ class BaseClass(BaseRequest, ABC):
             )
         ).inserted_id
         self = cls(
-            id=id,
+            id=str(id),
             created_at=created_at,
             updated_at=updated_at,
             registration=registration,
@@ -176,15 +176,13 @@ class BaseClass(BaseRequest, ABC):
         objs = (
             db[cls.table_name()]
             .find(find)
-            .skip(PaginationRequest.skip)
-            .limit(PaginationRequest.limit)
+            .skip(pagination_request.skip)
+            .limit(pagination_request.limit)
         )
         total = await db[cls.table_name()].count_documents(find)
         results = [
             cls(
-                id=obj["_id"],
-                created_at=obj["created_at"],
-                updated_at=obj["updated_at"],
+                id=str(obj["_id"]),
                 **obj,
             )
             async for obj in objs

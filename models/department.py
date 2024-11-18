@@ -9,10 +9,6 @@ class CreateDepartmentRequest(BaseRequest):
 
 
 class Department(BaseClass, CreateDepartmentRequest):
-    users: Annotated[
-        list[str], Field(description="The list of users in the company")
-    ] = []
-
     @classmethod
     async def gen_registration(cls, owner: str, **kwargs):
         return await super().gen_registration(owner, **kwargs)
