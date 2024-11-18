@@ -1,7 +1,6 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.responses import ORJSONResponse
-from config import DEBUG
 from models.department import Department, CreateDepartmentRequest
 from models.mixins import PaginatedResponse
 from models.users import User
@@ -23,14 +22,17 @@ delete_dependency = DeleteDependency(department_dependency)
     "/", response_model=PaginatedResponse[Department], response_class=ORJSONResponse
 )
 async def get_departments(
-    departments: Annotated[PaginatedResponse[Department], Depends(departments_dependency)],
+    departments: Annotated[
+        PaginatedResponse[Department], Depends(departments_dependency)
+    ],
 ):
     return departments.json()
 
 
 @router.post("/", response_model=Department, response_class=ORJSONResponse)
 async def create_department(
-    request: CreateDepartmentRequest, session: Annotated[User, Depends(admin_dependency)]
+    request: CreateDepartmentRequest,
+    session: Annotated[User, Depends(admin_dependency)],
 ):
     department = await Department.create(
         create_request=request,
@@ -40,7 +42,9 @@ async def create_department(
 
 
 @router.get("/{registration}", response_model=Department, response_class=ORJSONResponse)
-async def get_department(department: Annotated[Department, Depends(department_dependency)]):
+async def get_department(
+    department: Annotated[Department, Depends(department_dependency)],
+):
     return department.json()
 
 
@@ -54,5 +58,7 @@ async def update_department(
 
 
 @router.delete("/{registration}", include_in_schema=False)
-async def delete_department(department: Annotated[Department, Depends(delete_dependency)]):
+async def delete_department(
+    department: Annotated[Department, Depends(delete_dependency)],
+):
     return await department.delete()

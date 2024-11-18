@@ -80,6 +80,7 @@ class AdminListDependency(ListDependency[T]):
     """
     Dependency to get a list of objects.
     """
+
     async def __call__(
         self,
         session_dependency: Annotated[User, Depends(admin_dependency)],
@@ -134,6 +135,7 @@ class AdminObjectDependency(ObjectDependency[T]):
     """
     Dependency to get an object by id.
     """
+
     async def __call__(
         self,
         session: Annotated[User, Depends(admin_dependency)],

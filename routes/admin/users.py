@@ -1,7 +1,6 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.responses import ORJSONResponse
-from config import DEBUG
 from models.users import User, CreateUserRequest, UpdateUserRequest
 from models.mixins import PaginatedResponse
 from routes.dependencies import (
@@ -18,9 +17,7 @@ user_dependency = AdminObjectDependency(User)
 delete_dependency = DeleteDependency(user_dependency)
 
 
-@router.get(
-    "/", response_model=PaginatedResponse[User], response_class=ORJSONResponse
-)
+@router.get("/", response_model=PaginatedResponse[User], response_class=ORJSONResponse)
 async def get_users(
     users: Annotated[PaginatedResponse[User], Depends(users_dependency)],
 ):
