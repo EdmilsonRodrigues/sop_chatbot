@@ -1,8 +1,9 @@
+import asyncio
 from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.responses import ORJSONResponse
-from models.department import Department, CreateDepartmentRequest
-from models.mixins import PaginatedResponse
+from models.departments import Department, CreateDepartmentRequest
+from models.mixins import ActionResponse, PaginatedResponse
 from models.users import User
 from routes.dependencies import (
     AdminListDependency,
@@ -10,6 +11,7 @@ from routes.dependencies import (
     DeleteDependency,
     admin_dependency,
 )
+from session import db
 
 
 router = APIRouter(prefix="/departments", tags=["Admin: Departments"])
@@ -37,7 +39,10 @@ async def create_department(
     department = await Department.create(
         create_request=request,
         owner=session.registration,
+        company=session.company,
     )
+    session.departments.append(department.registration)
+    await session.update({"departments": session.departments})
     return department.json()
 
 
@@ -57,8 +62,17 @@ async def update_department(
     return department.json()
 
 
-@router.delete("/{registration}")
+@router.delete(
+    "/{registration}", response_class=ORJSONResponse, response_model=ActionResponse
+)
 async def delete_department(
     department: Annotated[Department, Depends(delete_dependency)],
 ):
-    return await department.delete()
+    deleted, _ = await asyncio.gather(
+        department.delete(),
+        db.users.update_many(
+            {"departments": {"$in": [department.registration]}},
+            {"$pull": {"departments": department.registration}},
+        ),
+    )
+    return deleted.model_dump()

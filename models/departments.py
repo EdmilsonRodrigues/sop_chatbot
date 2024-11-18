@@ -10,5 +10,9 @@ class CreateDepartmentRequest(BaseRequest):
 
 class Department(BaseClass, CreateDepartmentRequest):
     @classmethod
+    def create(cls, create_request: BaseRequest, owner: str, company: str, **kwargrs):
+        return super().create(create_request, owner, company=company, **kwargrs)
+
+    @classmethod
     async def gen_registration(cls, owner: str, **kwargs):
         return await super().gen_registration(owner, **kwargs)

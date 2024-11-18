@@ -1,8 +1,8 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
 from models.users import User, CreateUserRequest, UpdateUserRequest
-from models.mixins import PaginatedResponse
+from models.mixins import ActionResponse, PaginatedResponse
 from routes.dependencies import (
     AdminListDependency,
     AdminObjectDependency,
@@ -49,6 +49,13 @@ async def update_user(
     return user.json()
 
 
-@router.delete("/{registration}")
-async def delete_user(user: Annotated[User, Depends(delete_dependency)]):
-    return await user.delete()
+@router.delete(
+    "/{registration}", response_class=ORJSONResponse, response_model=ActionResponse
+)
+async def delete_user(
+    user: Annotated[User, Depends(user_dependency)],
+    session: Annotated[User, Depends(admin_dependency)],
+):
+    if user.registration == session.registration:
+        raise HTTPException(status_code=403, detail="You can't delete yourself")
+    return (await user.delete()).model_dump()

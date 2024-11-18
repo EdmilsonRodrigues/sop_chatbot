@@ -3,7 +3,9 @@ from datetime import datetime
 from enum import Enum
 from typing import Annotated
 from pydantic import EmailStr, Field
-from models.mixins import BaseClass, BaseRequest
+from models.companies import Company, CreateCompanyRequest
+from models.departments import CreateDepartmentRequest, Department
+from models.mixins import CLASS_MAPPING, BaseClass, BaseRequest
 from services.auth import Auth
 from session import db
 
@@ -16,7 +18,9 @@ class UserRoles(str, Enum):
 
 class CreateUserRequest(BaseRequest):
     name: Annotated[str, Field(description="The name of the user")]
-    department: Annotated[str, Field(description="The department of the user")]
+    departments: Annotated[
+        list[str], Field(description="The department of the user")
+    ] = []
     password: Annotated[str, Field(description="The password of the user")]
     role: Annotated[UserRoles, Field(description="The role of the user")] = (
         UserRoles.USER
@@ -24,18 +28,16 @@ class CreateUserRequest(BaseRequest):
 
 
 class CreateAdminRequest(CreateUserRequest):
-    department: Annotated[str, Field(description="The department of the user")] = (
-        "administration"
-    )
     email: Annotated[
         EmailStr,
         Field(
             description="The email of the user. Only the owner of the plan has their email registrationed"
         ),
-    ] = None
-    role: Annotated[UserRoles, Field(description="The role of the user")] = (
-        UserRoles.ADMIN
-    )
+    ]
+    company_name: Annotated[str, Field(description="The name of the company")]
+    company_description: Annotated[
+        str, Field(description="The description of the company")
+    ]
 
 
 class CommonUserRequest(BaseRequest):
@@ -48,6 +50,12 @@ class BaseUser(BaseClass, CreateUserRequest, ABC):
         return "users"
 
     @classmethod
+    @abstractmethod
+    async def gen_registration(cls, owner: str | None) -> tuple[str, str]:
+        pass
+
+    @classmethod
+    @abstractmethod
     async def create(cls, create_request: CreateUserRequest, owner: str | None = None):
         created_at = datetime.now()
         updated_at = datetime.now()
@@ -73,11 +81,6 @@ class BaseUser(BaseClass, CreateUserRequest, ABC):
             **create_request.model_dump(),
         )
         return self
-
-    @classmethod
-    @abstractmethod
-    async def gen_registration(cls, owner: str | None) -> tuple[str, str]:
-        pass
 
     @classmethod
     async def get(cls, registration: str):
@@ -183,20 +186,98 @@ class User(BaseUser, CommonUserRequest):
             3
         ), owner
 
+    @classmethod
+    async def create(cls, create_request: CreateUserRequest, owner: str):
+        created_at = datetime.now()
+        updated_at = datetime.now()
+        registration, updated_owner = await cls.gen_registration(owner)
+        create_request.password = Auth.encrypt_password(create_request.password)
+        id = (
+            await db[cls.table_name()].insert_one(
+                {
+                    **create_request.mongo(),
+                    "owner": updated_owner,
+                    "registration": registration,
+                    "created_at": created_at,
+                    "updated_at": updated_at,
+                }
+            )
+        ).inserted_id
+        self = cls(
+            id=str(id),
+            registration=registration,
+            owner=updated_owner,
+            created_at=created_at,
+            updated_at=updated_at,
+            **create_request.model_dump(),
+        )
+        return self
+
 
 class Admin(BaseUser, CreateAdminRequest):
+    role: Annotated[UserRoles, Field(description="The role of the user")] = (
+        UserRoles.ADMIN
+    )
+    departments: Annotated[list[str], Field(description="The department of the user")]
+
     @classmethod
     async def gen_registration(cls, owner: None) -> tuple[str, str]:
-        registration = "001."
+        registration = CLASS_MAPPING["User"] + "."
         all_users = await db[cls.table_name()].count_documents({})
         registration += str(all_users + 1).zfill(4)
         registration += ".000"
         return registration, registration
 
+    @classmethod
+    async def create(cls, create_request: CreateAdminRequest, owner: str):
+        created_at = datetime.now()
+        updated_at = datetime.now()
+        registration, updated_owner = await cls.gen_registration(owner)
+        company = await Company.create(
+            CreateCompanyRequest(
+                name=create_request.company_name,
+                description=create_request.company_description,
+            ),
+            owner=registration,
+        )
+        department = await Department.create(
+            CreateDepartmentRequest(
+                name="administration",
+                description="This department is only accessible by the administration",
+            ),
+            owner=company.registration,
+            company=company.registration,
+        )
+        create_request.password = Auth.encrypt_password(create_request.password)
+        id = (
+            await db[cls.table_name()].insert_one(
+                {
+                    **create_request.mongo(),
+                    "owner": updated_owner,
+                    "registration": registration,
+                    "created_at": created_at,
+                    "updated_at": updated_at,
+                    "company": company.registration,
+                    "departments": [department.registration],
+                }
+            )
+        ).inserted_id
+        self = cls(
+            id=str(id),
+            registration=registration,
+            owner=updated_owner,
+            created_at=created_at,
+            updated_at=updated_at,
+            company=company.registration,
+            departments=[department.registration],
+            **create_request.model_dump(),
+        )
+        return self
+
 
 class UpdateUserRequest(BaseRequest):
     name: Annotated[str | None, Field(description="The name of the user")] = None
-    department: Annotated[
+    departments: Annotated[
         str | None, Field(description="The department of the user")
     ] = None
     company: Annotated[str | None, Field(description="The company of the user")] = None

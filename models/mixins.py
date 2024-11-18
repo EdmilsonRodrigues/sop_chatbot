@@ -60,6 +60,7 @@ class BaseClass(BaseRequest, ABC):
         datetime, Field(description="The date and time the object was last updated")
     ]
     owner: Annotated[str, Field(description="The owner of the account")]
+    company: Annotated[str, Field(description="The company of the user")]
 
     @classmethod
     def table_name(cls):
@@ -88,7 +89,8 @@ class BaseClass(BaseRequest, ABC):
     async def update(self, data: dict):
         self.updated_at = datetime.now()
         for key, value in data.items():
-            setattr(self, key, value)
+            if value is not None:
+                setattr(self, key, value)
         await db[self.table_name()].update_one(
             {"_id": ObjectId(self.id)}, {"$set": self.mongo()}
         )
@@ -162,7 +164,15 @@ class BaseClass(BaseRequest, ABC):
     ) -> "PaginatedResponse":
         find = {"owner": owner}
         if user_registration is not None:
+            user = await db.users.find_one({"registration": user_registration})
+            if user is None:
+                return PaginatedResponse(pagination=Pagination(), results=[])
+            find["company"] = user["company"]
             find["users"] = {"$in": [user_registration]}
+            if cls.table_name() in user:
+                field = user[cls.table_name()]
+                if isinstance(field, list):
+                    find[cls.__name__.lower()] = {"$in": field}
         if pagination_request.query:
             regex = {"$regex": pagination_request.value, "$options": "i"}
             find.update(

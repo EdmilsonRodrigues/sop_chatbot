@@ -1,9 +1,10 @@
+import asyncio
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
 from config import DEBUG
 from models.companies import Company, CreateCompanyRequest
-from models.mixins import PaginatedResponse
+from models.mixins import ActionResponse, PaginatedResponse
 from models.users import User
 from routes.dependencies import (
     AdminListDependency,
@@ -11,6 +12,7 @@ from routes.dependencies import (
     DeleteDependency,
     admin_dependency,
 )
+from session import db
 
 
 router = APIRouter(prefix="/companies", tags=["Admin: Companies"])
@@ -56,8 +58,18 @@ async def update_company(
     return company.json()
 
 
-@router.delete("/{registration}", include_in_schema=False)
+@router.delete(
+    "/{registration}",
+    include_in_schema=False,
+    response_class=ORJSONResponse,
+    response_model=ActionResponse,
+)
 async def delete_company(company: Annotated[Company, Depends(delete_dependency)]):
     if not DEBUG:
         raise HTTPException(status_code=403, detail="Forbidden")
-    return await company.delete()
+    deleted, _, _ = await asyncio.gather(
+        company.delete(),
+        db.users.delete_many({"company": company.registration}),
+        db.departments.delete_many({"company": company.registration}),
+    )
+    return deleted.model_dump()
