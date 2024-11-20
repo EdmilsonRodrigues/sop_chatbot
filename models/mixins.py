@@ -77,7 +77,7 @@ class BaseClass(BaseRequest, ABC):
         elif isinstance(value, ObjectId):
             return str(value)
         elif isinstance(value, list):
-            return [cls.__get_json_value(value) for i in value]
+            return [cls.__get_json_value(i) for i in value]
         return value
 
     def json(self):
@@ -168,11 +168,10 @@ class BaseClass(BaseRequest, ABC):
             if user is None:
                 return PaginatedResponse(pagination=Pagination(), results=[])
             find["company"] = user["company"]
-            find["users"] = {"$in": [user_registration]}
             if cls.table_name() in user:
                 field = user[cls.table_name()]
                 if isinstance(field, list):
-                    find[cls.__name__.lower()] = {"$in": field}
+                    find["registration"] = {"$in": field}
         if pagination_request.query:
             regex = {"$regex": pagination_request.value, "$options": "i"}
             find.update(

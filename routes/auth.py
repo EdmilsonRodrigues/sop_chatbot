@@ -4,7 +4,7 @@ from fastapi.routing import APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
 
-from models.users import Admin, AdminResponse, CreateAdminRequest, User
+from models.users import Admin, AdminResponse, CreateAdminRequest, User, UserRoles
 from services.auth import AuthResponse, Auth
 
 
@@ -35,7 +35,12 @@ async def login(login: Annotated[OAuth2PasswordRequestForm, Depends()]):
     return AuthResponse(access_token=jwt)
 
 
-@router.post("/signup", response_model=AdminResponse, response_class=ORJSONResponse)
+@router.post(
+    "/signup",
+    response_model=AdminResponse,
+    response_class=ORJSONResponse,
+    status_code=201,
+)
 async def signup(
     create_user_request: Annotated[
         CreateAdminRequest, Body(description="The user to create")
@@ -44,6 +49,7 @@ async def signup(
     """
     Signup a user to the system. Required the user's name, email, password, and department.
     """
+    create_user_request.role = UserRoles.ADMIN
     user = await Admin.create(create_user_request, owner=None)
     return user.json()
 

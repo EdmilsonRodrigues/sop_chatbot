@@ -54,10 +54,8 @@ class ListDependency(Dependency, Generic[T]):
 
     async def __call__(
         self,
+        session_dependency: Annotated[User, Depends(session_dependency)],
         skip: Annotated[int, Path(description="The number of objects to skip.")] = 0,
-        session_dependency: Annotated[User, Depends(session_dependency)] = Depends(
-            session_dependency
-        ),
         limit: Annotated[
             int, Path(description="The number of objects to return.")
         ] = 10,
@@ -104,8 +102,10 @@ class ObjectDependency(Dependency, Generic[T]):
     Dependency to get an object by id.
     """
 
-    def __init__(self, cls: Type[T]) -> None:
+    def __init__(self, cls: Type[T], foreign_key: str | None = None, relational_list: str | None = None) -> None:
         self.cls = cls
+        self.foreign_key = foreign_key
+        self.relational_list = relational_list
 
     async def __call__(
         self,
@@ -124,8 +124,26 @@ class ObjectDependency(Dependency, Generic[T]):
                 status_code=404, detail=f"{self.cls.__name__} does not exist"
             )
 
-        users: list[str] = getattr(obj, "users", [])
-        if session.registration not in users:
+        users: list[str] = getattr(obj, "users", None)
+        authorized = False
+
+        if users is not None:
+            if session.registration in users:
+                authorized = True
+        
+        if self.foreign_key:
+            if getattr(obj, self.foreign_key, None) == session.registration:
+                authorized = True
+            elif getattr(session, self.foreign_key, None) == obj.registration:
+                authorized = True
+                
+        if self.relational_list:
+            if session.registration in getattr(obj, self.relational_list, []):
+                authorized = True
+            elif obj.registration in getattr(session, self.relational_list, []):
+                authorized = True
+
+        if not authorized:
             raise HTTPException(status_code=403, detail="Unauthorized")
 
         return obj

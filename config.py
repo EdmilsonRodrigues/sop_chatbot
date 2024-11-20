@@ -15,3 +15,4 @@ DEBUG = os.getenv("DEBUG", "False").capitalize() == "True"
 SECRET_KEY = os.getenv("SECRET_KEY", "This is my secret key")
 MONGO_CONNECTION_URL = os.getenv("MONGO_CONNECTION_URL", "mongodb://localhost:27017")
 MONGO_DATABASE = os.getenv("MONGO_DATABASE", "sops")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "This is my Gemini API key")

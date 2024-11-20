@@ -18,9 +18,6 @@ class UserRoles(str, Enum):
 
 class CreateUserRequest(BaseRequest):
     name: Annotated[str, Field(description="The name of the user")]
-    departments: Annotated[
-        list[str], Field(description="The department of the user")
-    ] = []
     password: Annotated[str, Field(description="The password of the user")]
     role: Annotated[UserRoles, Field(description="The role of the user")] = (
         UserRoles.USER
@@ -42,6 +39,9 @@ class CreateAdminRequest(CreateUserRequest):
 
 class CommonUserRequest(BaseRequest):
     company: Annotated[str, Field(description="The company of the user")]
+    departments: Annotated[
+        list[str], Field(description="The department of the user")
+    ] = []
 
 
 class BaseUser(BaseClass, CreateUserRequest, ABC):
@@ -120,8 +120,10 @@ class UserResponse(BaseClass):
     registration: Annotated[str, Field(description="The registration of the user")]
     owner: Annotated[str, Field(description="The owner of the user")]
     name: Annotated[str, Field(description="The name of the user")]
-    department: Annotated[str, Field(description="The department of the user")]
-    company: Annotated[str | None, Field(description="The company of the user")] = None
+    departments: Annotated[
+        list[str], Field(description="The department list of the user")
+    ]
+    company: Annotated[str, Field(description="The company of the user")]
     role: Annotated[UserRoles, Field(description="The role of the user")] = (
         UserRoles.USER
     )
@@ -245,7 +247,7 @@ class Admin(BaseUser, CreateAdminRequest):
                 name="administration",
                 description="This department is only accessible by the administration",
             ),
-            owner=company.registration,
+            owner=company.owner,
             company=company.registration,
         )
         create_request.password = Auth.encrypt_password(create_request.password)
