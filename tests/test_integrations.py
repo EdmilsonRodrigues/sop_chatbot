@@ -184,5 +184,31 @@ async def test_update_my_password(admin_request):
     admin_headers = {"Authorization": f"Bearer {response['access_token']}"}
     
 
-
+@pytest.mark.asyncio(loop_scope="session")
+async def test_admin_get_users(admin_request):
+    response = await async_client.get("admin/users/", headers=admin_headers)
+    if response.status_code // 100 != 2:
+        assert response.json() == {}
+    assert response.status_code == 200
+    users = response.json()
+    pagination = users["pagination"]
+    assert pagination["page"] == 1
+    assert pagination["limit"] == 10
+    assert pagination["total"] == 1
+    users = users["results"]
+    assert len(users) == 1
+    user = users[0]
+    assert user["company"].startswith(CLASS_MAPPING["Company"])
+    assert user["company"].endswith("001")
+    assert len(user["departments"]) == 1
+    assert user["departments"][0].startswith(CLASS_MAPPING["Department"])
+    assert user["departments"][0].endswith("001")
+    assert user["id"] is not None
+    assert user["name"] == name
+    assert user["owner"] == user["registration"]
+    assert user["role"] == UserRoles.ADMIN.value
+    common = user["owner"].split(".")[1]
+    assert (
+        common == user["departments"][0].split(".")[1] == user["company"].split(".")[1]
+    )
 
