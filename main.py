@@ -1,33 +1,32 @@
 import asyncio
-
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 
 from config import APP, DEBUG, DESCRIPTION, VERSION
-from routes.api import router as api_router
 from migrations.indexes import create_indexes
 from migrations.migrations import run_migrations
-
+from routes.api import router as api_router
 
 tags_info = [
-    {"name": "Version", "description": "Version information"},
-    {"name": "Auth", "description": "Authentication related operations"},
-    {"name": "Admin", "description": "Operations for administrators"},
-    {"name": "Users", "description": "Users related operations"},
+    {'name': 'Version', 'description': 'Version information'},
+    {'name': 'Auth', 'description': 'Authentication related operations'},
+    {'name': 'Admin', 'description': 'Operations for administrators'},
+    {'name': 'Users', 'description': 'Users related operations'},
     {
-        "name": "Admin: Users",
-        "description": "Users related operations for administrators",
+        'name': 'Admin: Users',
+        'description': 'Users related operations for administrators',
     },
-    {"name": "Companies", "description": "Companies related operations"},
+    {'name': 'Companies', 'description': 'Companies related operations'},
     {
-        "name": "Admin: Companies",
-        "description": "Companies related operations for administrators",
+        'name': 'Admin: Companies',
+        'description': 'Companies related operations for administrators',
     },
-    {"name": "Departments", "description": "Departments related operations"},
+    {'name': 'Departments', 'description': 'Departments related operations'},
     {
-        "name": "Admin: Departments",
-        "description": "Departments related operations for administrators",
+        'name': 'Admin: Departments',
+        'description': 'Departments related operations for administrators',
     },
 ]
 
@@ -55,12 +54,12 @@ class VersionInfo(BaseModel):
     version: str
 
 
-@app.get("/", response_model=VersionInfo, tags=["Version"])
+@app.get('/', response_model=VersionInfo, tags=['Version'])
 def version():
-    return {"version": VERSION}
+    return {'version': VERSION}
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import uvicorn
 
-    uvicorn.run(app, host="localhost", port=8000)
+    uvicorn.run(app, host='localhost', port=8000)

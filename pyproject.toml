@@ -5,19 +5,19 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "bson==0.5.10",
-    "fastapi==0.115.5",
+    "fastapi[standard]==0.115.6",
     "google==3.0.0",
-    "httpx==0.27.2",
+    "httpx==0.28.1",
     "motor==3.6.0",
+    "ops>=2.17.1",
     "orjson==3.10.12",
-    "pydantic[email]==2.10.2",
+    "pydantic[email]==2.10.4",
     "pyjwt==2.10.1",
+    "pymongo==4.9.2",
     "python-dotenv==1.0.1",
-    "python-multipart==0.0.17",
+    "python-multipart==0.0.20",
     "requests==2.32.3",
-    "tox>=4.23.2",
-    "uvicorn==0.32.1",
+    "uvicorn==0.34.0",
 ]
 
 [dependency-groups]
@@ -28,5 +28,18 @@ test = [
 ]
 dev = [
     "mypy==1.13.0",
+    "juju>=3.6.0.0",
     "ruff==0.8.0",
 ]
+
+[tool.ruff]
+line-length = 79
+
+[tool.ruff.format]
+quote-style = 'single'
+skip-magic-trailing-comma = false
+docstring-code-line-length = 72
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = ["F", "E", "UP", "I", "W"]

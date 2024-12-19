@@ -1,19 +1,23 @@
 from datetime import datetime
 from typing import Annotated
+
 from pydantic import Field
+
 from models.mixins import BaseClass, BaseRequest
 from session import db
 
 
 class CreateCompanyRequest(BaseRequest):
-    name: Annotated[str, Field(description="The name of the company")]
-    description: Annotated[str, Field(description="The description of the company")]
+    name: Annotated[str, Field(description='The name of the company')]
+    description: Annotated[
+        str, Field(description='The description of the company')
+    ]
 
 
 class Company(BaseClass, CreateCompanyRequest):
     @classmethod
     def table_name(cls):
-        return "companies"
+        return 'companies'
 
     @classmethod
     async def create(cls, create_request: BaseRequest, owner: str, **kwargrs):
@@ -24,11 +28,11 @@ class Company(BaseClass, CreateCompanyRequest):
             await db[cls.table_name()].insert_one(
                 {
                     **create_request.mongo(),
-                    "registration": registration,
-                    "owner": owner,
-                    "created_at": created_at,
-                    "updated_at": updated_at,
-                    "company": registration,
+                    'registration': registration,
+                    'owner': owner,
+                    'created_at': created_at,
+                    'updated_at': updated_at,
+                    'company': registration,
                     **kwargrs,
                 }
             )

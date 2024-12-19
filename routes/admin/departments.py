@@ -1,8 +1,10 @@
 import asyncio
 from typing import Annotated
+
 from fastapi import APIRouter, Depends
 from fastapi.responses import ORJSONResponse
-from models.departments import Department, CreateDepartmentRequest
+
+from models.departments import CreateDepartmentRequest, Department
 from models.mixins import ActionResponse, PaginatedResponse
 from models.users import User
 from routes.dependencies import (
@@ -13,15 +15,16 @@ from routes.dependencies import (
 )
 from session import db
 
-
-router = APIRouter(prefix="/departments", tags=["Admin: Departments"])
+router = APIRouter(prefix='/departments', tags=['Admin: Departments'])
 departments_dependency = AdminListDependency(Department)
 department_dependency = AdminObjectDependency(Department)
 delete_dependency = DeleteDependency(department_dependency)
 
 
 @router.get(
-    "/", response_model=PaginatedResponse[Department], response_class=ORJSONResponse
+    '/',
+    response_model=PaginatedResponse[Department],
+    response_class=ORJSONResponse,
 )
 async def get_departments(
     departments: Annotated[
@@ -31,7 +34,7 @@ async def get_departments(
     return departments.json()
 
 
-@router.post("/", response_model=Department, response_class=ORJSONResponse)
+@router.post('/', response_model=Department, response_class=ORJSONResponse)
 async def create_department(
     request: CreateDepartmentRequest,
     session: Annotated[User, Depends(admin_dependency)],
@@ -42,18 +45,22 @@ async def create_department(
         company=session.company,
     )
     session.departments.append(department.registration)
-    await session.update({"departments": session.departments})
+    await session.update({'departments': session.departments})
     return department.json()
 
 
-@router.get("/{registration}", response_model=Department, response_class=ORJSONResponse)
+@router.get(
+    '/{registration}', response_model=Department, response_class=ORJSONResponse
+)
 async def get_department(
     department: Annotated[Department, Depends(department_dependency)],
 ):
     return department.json()
 
 
-@router.put("/{registration}", response_model=Department, response_class=ORJSONResponse)
+@router.put(
+    '/{registration}', response_model=Department, response_class=ORJSONResponse
+)
 async def update_department(
     request: CreateDepartmentRequest,
     department: Annotated[Department, Depends(department_dependency)],
@@ -63,7 +70,9 @@ async def update_department(
 
 
 @router.delete(
-    "/{registration}", response_class=ORJSONResponse, response_model=ActionResponse
+    '/{registration}',
+    response_class=ORJSONResponse,
+    response_model=ActionResponse,
 )
 async def delete_department(
     department: Annotated[Department, Depends(delete_dependency)],
@@ -71,8 +80,8 @@ async def delete_department(
     deleted, _ = await asyncio.gather(
         department.delete(),
         db.users.update_many(
-            {"departments": {"$in": [department.registration]}},
-            {"$pull": {"departments": department.registration}},
+            {'departments': {'$in': [department.registration]}},
+            {'$pull': {'departments': department.registration}},
         ),
     )
     return deleted.model_dump()

@@ -2,15 +2,16 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
 from typing import Annotated, Any, Generic, TypeVar
-from pydantic import BaseModel, Field
+
 from bson import ObjectId
+from pydantic import BaseModel, Field
+
 from session import db
 
-
 CLASS_MAPPING = {
-    "User": "001",
-    "Company": "002",
-    "Department": "003",
+    'User': '001',
+    'Company': '002',
+    'Department': '003',
 }
 
 
@@ -35,7 +36,7 @@ class Pagination(BaseModel):
 class BaseRequest(BaseModel, ABC):
     def mongo(self):
         dump = self.model_dump()
-        dump.pop("id", None)
+        dump.pop('id', None)
         for key, value in dump.items():
             if isinstance(value, ObjectId):
                 dump[key] = str(value)
@@ -48,23 +49,27 @@ class BaseRequest(BaseModel, ABC):
 
 class BaseClass(BaseRequest, ABC):
     id: Annotated[
-        str, Field(min_length=24, max_length=24, description="The id of the object")
+        str,
+        Field(
+            min_length=24, max_length=24, description='The id of the object'
+        ),
     ]
     registration: Annotated[
-        str, Field(description="The registration string of the object")
+        str, Field(description='The registration string of the object')
     ]
     created_at: Annotated[
-        datetime, Field(description="The date and time the object was created")
+        datetime, Field(description='The date and time the object was created')
     ]
     updated_at: Annotated[
-        datetime, Field(description="The date and time the object was last updated")
+        datetime,
+        Field(description='The date and time the object was last updated'),
     ]
-    owner: Annotated[str, Field(description="The owner of the account")]
-    company: Annotated[str, Field(description="The company of the user")]
+    owner: Annotated[str, Field(description='The owner of the account')]
+    company: Annotated[str, Field(description='The company of the user')]
 
     @classmethod
     def table_name(cls):
-        return cls.__name__.lower() + "s"
+        return cls.__name__.lower() + 's'
 
     @classmethod
     def __get_json_value(cls, value):
@@ -92,7 +97,7 @@ class BaseClass(BaseRequest, ABC):
             if value is not None:
                 setattr(self, key, value)
         await db[self.table_name()].update_one(
-            {"_id": ObjectId(self.id)}, {"$set": self.mongo()}
+            {'_id': ObjectId(self.id)}, {'$set': self.mongo()}
         )
         return self
 
@@ -105,10 +110,10 @@ class BaseClass(BaseRequest, ABC):
             await db[cls.table_name()].insert_one(
                 {
                     **create_request.mongo(),
-                    "registration": registration,
-                    "owner": owner,
-                    "created_at": created_at,
-                    "updated_at": updated_at,
+                    'registration': registration,
+                    'owner': owner,
+                    'created_at': created_at,
+                    'updated_at': updated_at,
                     **kwargrs,
                 }
             )
@@ -127,19 +132,23 @@ class BaseClass(BaseRequest, ABC):
     @classmethod
     @abstractmethod
     async def gen_registration(cls, owner: str, **kwargs):
-        registration = CLASS_MAPPING[cls.__name__] + "."
-        owner_part = owner.split(".")[1]
-        registration += owner_part + "."
-        all_companies = await db[cls.table_name()].count_documents({"owner": owner})
+        registration = CLASS_MAPPING[cls.__name__] + '.'
+        owner_part = owner.split('.')[1]
+        registration += owner_part + '.'
+        all_companies = await db[cls.table_name()].count_documents(
+            {'owner': owner}
+        )
         registration += str(all_companies + 1).zfill(3)
         return registration
 
     @classmethod
     async def get(cls, registration: str):
-        obj = await db[cls.table_name()].find_one({"registration": registration})
+        obj = await db[cls.table_name()].find_one(
+            {'registration': registration}
+        )
         if obj:
             return cls(
-                id=str(obj["_id"]),
+                id=str(obj['_id']),
                 **obj,
             )
         return None
@@ -149,7 +158,7 @@ class BaseClass(BaseRequest, ABC):
         obj = await db[cls.table_name()].find_one({key: value})
         if obj:
             return cls(
-                id=str(obj["_id"]),
+                id=str(obj['_id']),
                 **obj,
             )
         return None
@@ -161,23 +170,23 @@ class BaseClass(BaseRequest, ABC):
         owner: str,
         user_registration: str | None = None,
         **kwargs,
-    ) -> "PaginatedResponse":
-        find = {"owner": owner}
+    ) -> 'PaginatedResponse':
+        find = {'owner': owner}
         if user_registration is not None:
-            user = await db.users.find_one({"registration": user_registration})
+            user = await db.users.find_one({'registration': user_registration})
             if user is None:
                 return PaginatedResponse(pagination=Pagination(), results=[])
-            find["company"] = user["company"]
+            find['company'] = user['company']
             if cls.table_name() in user:
                 field = user[cls.table_name()]
                 if isinstance(field, list):
-                    find["registration"] = {"$in": field}
+                    find['registration'] = {'$in': field}
         if pagination_request.query:
-            regex = {"$regex": pagination_request.value, "$options": "i"}
+            regex = {'$regex': pagination_request.value, '$options': 'i'}
             find.update(
                 {
-                    "$or": [
-                        {"$text": {"$search": pagination_request.value}},
+                    '$or': [
+                        {'$text': {'$search': pagination_request.value}},
                         {pagination_request.query: regex},
                     ]
                 }
@@ -191,7 +200,7 @@ class BaseClass(BaseRequest, ABC):
         total = await db[cls.table_name()].count_documents(find)
         results = [
             cls(
-                id=str(obj["_id"]),
+                id=str(obj['_id']),
                 **obj,
             )
             async for obj in objs
@@ -204,13 +213,16 @@ class BaseClass(BaseRequest, ABC):
         return PaginatedResponse(pagination=pagination, results=results)
 
     async def delete(self) -> ActionResponse:
-        await db[self.table_name()].delete_one({"registration": self.registration})
+        await db[self.table_name()].delete_one(
+            {'registration': self.registration}
+        )
         return ActionResponse(
-            action="delete", message=f"{self.__class__.__name__} deleted successfully"
+            action='delete',
+            message=f'{self.__class__.__name__} deleted successfully',
         )
 
 
-T = TypeVar("T", bound=BaseClass)
+T = TypeVar('T', bound=BaseClass)
 
 
 class PaginatedResponse(BaseModel, Generic[T]):
@@ -219,6 +231,6 @@ class PaginatedResponse(BaseModel, Generic[T]):
 
     def json(self):
         return {
-            "pagination": self.pagination.model_dump(),
-            "results": [result.json() for result in self.results],
+            'pagination': self.pagination.model_dump(),
+            'results': [result.json() for result in self.results],
         }

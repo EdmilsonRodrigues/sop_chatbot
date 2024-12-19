@@ -1,8 +1,15 @@
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
-from models.users import User, CreateUserRequest, UpdateUserRequest, UserResponse
+
 from models.mixins import ActionResponse, PaginatedResponse
+from models.users import (
+    CreateUserRequest,
+    UpdateUserRequest,
+    User,
+    UserResponse,
+)
 from routes.dependencies import (
     AdminListDependency,
     AdminObjectDependency,
@@ -10,23 +17,27 @@ from routes.dependencies import (
     admin_dependency,
 )
 
-
-router = APIRouter(prefix="/users", tags=["Admin: Users"])
+router = APIRouter(prefix='/users', tags=['Admin: Users'])
 users_dependency = AdminListDependency(User)
 user_dependency = AdminObjectDependency(User)
 delete_dependency = DeleteDependency(user_dependency)
 
 
-@router.get("/", response_model=PaginatedResponse[UserResponse], response_class=ORJSONResponse)
+@router.get(
+    '/',
+    response_model=PaginatedResponse[UserResponse],
+    response_class=ORJSONResponse,
+)
 async def get_users(
     users: Annotated[PaginatedResponse[User], Depends(users_dependency)],
 ):
     return users.json()
 
 
-@router.post("/", response_model=User, response_class=ORJSONResponse)
+@router.post('/', response_model=User, response_class=ORJSONResponse)
 async def create_user(
-    request: CreateUserRequest, session: Annotated[User, Depends(admin_dependency)]
+    request: CreateUserRequest,
+    session: Annotated[User, Depends(admin_dependency)],
 ):
     user = await User.create(
         create_request=request,
@@ -35,12 +46,16 @@ async def create_user(
     return user.json()
 
 
-@router.get("/{registration}", response_model=User, response_class=ORJSONResponse)
+@router.get(
+    '/{registration}', response_model=User, response_class=ORJSONResponse
+)
 async def get_user(user: Annotated[User, Depends(user_dependency)]):
     return user.json()
 
 
-@router.put("/{registration}", response_model=User, response_class=ORJSONResponse)
+@router.put(
+    '/{registration}', response_model=User, response_class=ORJSONResponse
+)
 async def update_user(
     request: UpdateUserRequest,
     user: Annotated[User, Depends(user_dependency)],
@@ -50,12 +65,16 @@ async def update_user(
 
 
 @router.delete(
-    "/{registration}", response_class=ORJSONResponse, response_model=ActionResponse
+    '/{registration}',
+    response_class=ORJSONResponse,
+    response_model=ActionResponse,
 )
 async def delete_user(
     user: Annotated[User, Depends(user_dependency)],
     session: Annotated[User, Depends(admin_dependency)],
 ):
     if user.registration == session.registration:
-        raise HTTPException(status_code=403, detail="You can't delete yourself")
+        raise HTTPException(
+            status_code=403, detail="You can't delete yourself"
+        )
     return (await user.delete()).model_dump()

@@ -1,19 +1,18 @@
-import jwt
-
 from datetime import UTC, datetime, timedelta
-from fastapi.security import OAuth2PasswordBearer
 from hashlib import sha256
+
+import jwt
+from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 
 from config import SECRET_KEY
 
-
-oauth_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+oauth_scheme = OAuth2PasswordBearer(tokenUrl='/api/auth/login')
 
 
 class AuthResponse(BaseModel):
     access_token: str
-    token_type: str = "bearer"
+    token_type: str = 'bearer'
 
 
 class Auth:
@@ -29,11 +28,11 @@ class Auth:
         :rtype: str
         """
         payload = {
-            "user_registration": user_registration,
-            "exp": datetime.now(UTC) + timedelta(days=7),
-            "secret": SECRET_KEY,
+            'user_registration': user_registration,
+            'exp': datetime.now(UTC) + timedelta(days=7),
+            'secret': SECRET_KEY,
         }
-        return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+        return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 
     @staticmethod
     def decode_jwt(token: str) -> dict | None:
@@ -47,7 +46,7 @@ class Auth:
         :rtype: dict | None
         """
         try:
-            return jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            return jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
         except jwt.ExpiredSignatureError:
             return None
         except jwt.InvalidTokenError:

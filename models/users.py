@@ -2,7 +2,9 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
 from typing import Annotated
+
 from pydantic import EmailStr, Field
+
 from models.companies import Company, CreateCompanyRequest
 from models.departments import CreateDepartmentRequest, Department
 from models.mixins import CLASS_MAPPING, BaseClass, BaseRequest
@@ -11,15 +13,15 @@ from session import db
 
 
 class UserRoles(str, Enum):
-    ADMIN = "admin"
-    MANAGER = "manager"
-    USER = "user"
+    ADMIN = 'admin'
+    MANAGER = 'manager'
+    USER = 'user'
 
 
 class CreateUserRequest(BaseRequest):
-    name: Annotated[str, Field(description="The name of the user")]
-    password: Annotated[str, Field(description="The password of the user")]
-    role: Annotated[UserRoles, Field(description="The role of the user")] = (
+    name: Annotated[str, Field(description='The name of the user')]
+    password: Annotated[str, Field(description='The password of the user')]
+    role: Annotated[UserRoles, Field(description='The role of the user')] = (
         UserRoles.USER
     )
 
@@ -28,26 +30,26 @@ class CreateAdminRequest(CreateUserRequest):
     email: Annotated[
         EmailStr,
         Field(
-            description="The email of the user. Only the owner of the plan has their email registrationed"
+            description='The email of the user. Only the owner of the plan has their email registrationed'
         ),
     ]
-    company_name: Annotated[str, Field(description="The name of the company")]
+    company_name: Annotated[str, Field(description='The name of the company')]
     company_description: Annotated[
-        str, Field(description="The description of the company")
+        str, Field(description='The description of the company')
     ]
 
 
 class CommonUserRequest(BaseRequest):
-    company: Annotated[str, Field(description="The company of the user")]
+    company: Annotated[str, Field(description='The company of the user')]
     departments: Annotated[
-        list[str], Field(description="The department of the user")
+        list[str], Field(description='The department of the user')
     ] = []
 
 
 class BaseUser(BaseClass, CreateUserRequest, ABC):
     @classmethod
     def table_name(cls):
-        return "users"
+        return 'users'
 
     @classmethod
     @abstractmethod
@@ -56,19 +58,23 @@ class BaseUser(BaseClass, CreateUserRequest, ABC):
 
     @classmethod
     @abstractmethod
-    async def create(cls, create_request: CreateUserRequest, owner: str | None = None):
+    async def create(
+        cls, create_request: CreateUserRequest, owner: str | None = None
+    ):
         created_at = datetime.now()
         updated_at = datetime.now()
         registration, updated_owner = await cls.gen_registration(owner)
-        create_request.password = Auth.encrypt_password(create_request.password)
+        create_request.password = Auth.encrypt_password(
+            create_request.password
+        )
         id = (
             await db[cls.table_name()].insert_one(
                 {
                     **create_request.mongo(),
-                    "owner": updated_owner,
-                    "registration": registration,
-                    "created_at": created_at,
-                    "updated_at": updated_at,
+                    'owner': updated_owner,
+                    'registration': registration,
+                    'created_at': created_at,
+                    'updated_at': updated_at,
                 }
             )
         ).inserted_id
@@ -84,24 +90,26 @@ class BaseUser(BaseClass, CreateUserRequest, ABC):
 
     @classmethod
     async def get(cls, registration: str):
-        obj = await db[cls.table_name()].find_one({"registration": registration})
+        obj = await db[cls.table_name()].find_one(
+            {'registration': registration}
+        )
         if obj:
-            if not obj.get("company"):
-                obj["company"] = ""
+            if not obj.get('company'):
+                obj['company'] = ''
             return cls(
-                id=str(obj["_id"]),
+                id=str(obj['_id']),
                 **obj,
             )
         return None
 
     def json(self) -> dict:
         dump = super().json()
-        dump.pop("password", None)
+        dump.pop('password', None)
         return dump
 
     def mongo(self) -> dict:
         dump = super().mongo()
-        dump.pop("password", None)
+        dump.pop('password', None)
         return dump
 
     def verify_password(self, password: str) -> bool:
@@ -117,14 +125,16 @@ class BaseUser(BaseClass, CreateUserRequest, ABC):
 
 
 class UserResponse(BaseClass):
-    registration: Annotated[str, Field(description="The registration of the user")]
-    owner: Annotated[str, Field(description="The owner of the user")]
-    name: Annotated[str, Field(description="The name of the user")]
-    departments: Annotated[
-        list[str], Field(description="The department list of the user")
+    registration: Annotated[
+        str, Field(description='The registration of the user')
     ]
-    company: Annotated[str, Field(description="The company of the user")]
-    role: Annotated[UserRoles, Field(description="The role of the user")] = (
+    owner: Annotated[str, Field(description='The owner of the user')]
+    name: Annotated[str, Field(description='The name of the user')]
+    departments: Annotated[
+        list[str], Field(description='The department list of the user')
+    ]
+    company: Annotated[str, Field(description='The company of the user')]
+    role: Annotated[UserRoles, Field(description='The role of the user')] = (
         UserRoles.USER
     )
 
@@ -136,7 +146,7 @@ class AdminResponse(UserResponse):
     email: Annotated[
         EmailStr,
         Field(
-            description="The email of the user. Only the owner of the plan has their email registrationed"
+            description='The email of the user. Only the owner of the plan has their email registrationed'
         ),
     ]
 
@@ -145,28 +155,33 @@ class User(BaseUser, CommonUserRequest):
     @classmethod
     async def gen_registration(cls, owner: str) -> tuple[str, str]:
         pipeline = [
-            {"$match": {"owner": owner}},
+            {'$match': {'owner': owner}},
             {
-                "$project": {
-                    "registration": {
-                        "$toInt": {
-                            "$substr": [
-                                "$registration",
+                '$project': {
+                    'registration': {
+                        '$toInt': {
+                            '$substr': [
+                                '$registration',
                                 {
-                                    "$add": [
-                                        {"$indexOfBytes": ["$registration", "."]},
+                                    '$add': [
+                                        {
+                                            '$indexOfBytes': [
+                                                '$registration',
+                                                '.',
+                                            ]
+                                        },
                                         1,
                                     ]
                                 },
                                 {
-                                    "$subtract": [
-                                        {"$strLenCP": "$registration"},
+                                    '$subtract': [
+                                        {'$strLenCP': '$registration'},
                                         {
-                                            "$add": [
+                                            '$add': [
                                                 {
-                                                    "$indexOfBytes": [
-                                                        "$registration",
-                                                        ".",
+                                                    '$indexOfBytes': [
+                                                        '$registration',
+                                                        '.',
                                                     ]
                                                 },
                                                 1,
@@ -179,29 +194,31 @@ class User(BaseUser, CommonUserRequest):
                     }
                 }
             },
-            {"$sort": {"registration": -1}},
-            {"$limit": 1},
+            {'$sort': {'registration': -1}},
+            {'$limit': 1},
         ]
         result = await db.users.aggregate(pipeline).to_list(length=1)
-        highest_registration = result[0]["registration"]
-        return ".".join(owner.split(".")[0:2]) + "." + str(highest_registration).zfill(
-            3
-        ), owner
+        highest_registration = result[0]['registration']
+        return '.'.join(owner.split('.')[0:2]) + '.' + str(
+            highest_registration
+        ).zfill(3), owner
 
     @classmethod
     async def create(cls, create_request: CreateUserRequest, owner: str):
         created_at = datetime.now()
         updated_at = datetime.now()
         registration, updated_owner = await cls.gen_registration(owner)
-        create_request.password = Auth.encrypt_password(create_request.password)
+        create_request.password = Auth.encrypt_password(
+            create_request.password
+        )
         id = (
             await db[cls.table_name()].insert_one(
                 {
                     **create_request.mongo(),
-                    "owner": updated_owner,
-                    "registration": registration,
-                    "created_at": created_at,
-                    "updated_at": updated_at,
+                    'owner': updated_owner,
+                    'registration': registration,
+                    'created_at': created_at,
+                    'updated_at': updated_at,
                 }
             )
         ).inserted_id
@@ -217,17 +234,19 @@ class User(BaseUser, CommonUserRequest):
 
 
 class Admin(BaseUser, CreateAdminRequest):
-    role: Annotated[UserRoles, Field(description="The role of the user")] = (
+    role: Annotated[UserRoles, Field(description='The role of the user')] = (
         UserRoles.ADMIN
     )
-    departments: Annotated[list[str], Field(description="The department of the user")]
+    departments: Annotated[
+        list[str], Field(description='The department of the user')
+    ]
 
     @classmethod
     async def gen_registration(cls, owner: None) -> tuple[str, str]:
-        registration = CLASS_MAPPING["User"] + "."
+        registration = CLASS_MAPPING['User'] + '.'
         all_users = await db[cls.table_name()].count_documents({})
         registration += str(all_users + 1).zfill(4)
-        registration += ".000"
+        registration += '.000'
         return registration, registration
 
     @classmethod
@@ -244,23 +263,25 @@ class Admin(BaseUser, CreateAdminRequest):
         )
         department = await Department.create(
             CreateDepartmentRequest(
-                name="administration",
-                description="This department is only accessible by the administration",
+                name='administration',
+                description='This department is only accessible by the administration',
             ),
             owner=company.owner,
             company=company.registration,
         )
-        create_request.password = Auth.encrypt_password(create_request.password)
+        create_request.password = Auth.encrypt_password(
+            create_request.password
+        )
         id = (
             await db[cls.table_name()].insert_one(
                 {
                     **create_request.mongo(),
-                    "owner": updated_owner,
-                    "registration": registration,
-                    "created_at": created_at,
-                    "updated_at": updated_at,
-                    "company": company.registration,
-                    "departments": [department.registration],
+                    'owner': updated_owner,
+                    'registration': registration,
+                    'created_at': created_at,
+                    'updated_at': updated_at,
+                    'company': company.registration,
+                    'departments': [department.registration],
                 }
             )
         ).inserted_id
@@ -278,9 +299,15 @@ class Admin(BaseUser, CreateAdminRequest):
 
 
 class UpdateUserRequest(BaseRequest):
-    name: Annotated[str | None, Field(description="The name of the user")] = None
+    name: Annotated[str | None, Field(description='The name of the user')] = (
+        None
+    )
     departments: Annotated[
-        str | None, Field(description="The department of the user")
+        str | None, Field(description='The department of the user')
     ] = None
-    company: Annotated[str | None, Field(description="The company of the user")] = None
-    role: Annotated[UserRoles | None, Field(description="The role of the user")] = None
+    company: Annotated[
+        str | None, Field(description='The company of the user')
+    ] = None
+    role: Annotated[
+        UserRoles | None, Field(description='The role of the user')
+    ] = None

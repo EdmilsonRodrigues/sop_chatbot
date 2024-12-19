@@ -1,22 +1,25 @@
 from abc import ABC, abstractmethod
+from typing import Annotated, Any, Generic
+
 from fastapi import Depends, HTTPException, Path
-from typing import Annotated, Any, Generic, Type
 
 from models.mixins import (
-    T,
     ActionResponse,
     PaginatedResponse,
     PaginationRequest,
+    T,
 )
 from models.users import User
-from services.auth import oauth_scheme, Auth
+from services.auth import Auth, oauth_scheme
 
 
-async def session_dependency(token: Annotated[str, Depends(oauth_scheme)]) -> User:
+async def session_dependency(
+    token: Annotated[str, Depends(oauth_scheme)],
+) -> User:
     payload = Auth().decode_jwt(token)
-    user = await User.get(payload["user_registration"])
+    user = await User.get(payload['user_registration'])
     if user is None:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail='Invalid token')
     return user
 
 
@@ -24,14 +27,14 @@ async def admin_dependency(token: Annotated[str, Depends(oauth_scheme)]):
     session = await session_dependency(token)
     if session.is_admin:
         return session
-    raise HTTPException(status_code=403, detail="Unauthorized")
+    raise HTTPException(status_code=403, detail='Unauthorized')
 
 
 async def manager_dependency(token: Annotated[str, Depends(oauth_scheme)]):
     session = await session_dependency(token)
     if session.is_manager:
         return session
-    raise HTTPException(status_code=403, detail="Unauthorized")
+    raise HTTPException(status_code=403, detail='Unauthorized')
 
 
 class Dependency(ABC):
@@ -49,24 +52,28 @@ class ListDependency(Dependency, Generic[T]):
     Dependency to get a list of objects.
     """
 
-    def __init__(self, cls: Type[T]) -> None:
+    def __init__(self, cls: type[T]) -> None:
         self.cls = cls
 
     async def __call__(
         self,
         session_dependency: Annotated[User, Depends(session_dependency)],
-        skip: Annotated[int, Path(description="The number of objects to skip.")] = 0,
+        skip: Annotated[
+            int, Path(description='The number of objects to skip.')
+        ] = 0,
         limit: Annotated[
-            int, Path(description="The number of objects to return.")
+            int, Path(description='The number of objects to return.')
         ] = 10,
         query: Annotated[
-            str, Path(description="The query to filter the objects.")
+            str, Path(description='The query to filter the objects.')
         ] = None,
         value: Annotated[
-            Any, Path(description="The value to filter the objects.")
+            Any, Path(description='The value to filter the objects.')
         ] = None,
     ) -> PaginatedResponse[T]:
-        pagination = PaginationRequest(skip=skip, limit=limit, query=query, value=value)
+        pagination = PaginationRequest(
+            skip=skip, limit=limit, query=query, value=value
+        )
         return await self.cls.get_all(
             pagination,
             owner=session_dependency.owner,
@@ -82,19 +89,25 @@ class AdminListDependency(ListDependency[T]):
     async def __call__(
         self,
         session_dependency: Annotated[User, Depends(admin_dependency)],
-        skip: Annotated[int, Path(description="The number of objects to skip.")] = 0,
+        skip: Annotated[
+            int, Path(description='The number of objects to skip.')
+        ] = 0,
         limit: Annotated[
-            int, Path(description="The number of objects to return.")
+            int, Path(description='The number of objects to return.')
         ] = 10,
         query: Annotated[
-            str, Path(description="The query to filter the objects.")
+            str, Path(description='The query to filter the objects.')
         ] = None,
         value: Annotated[
-            Any, Path(description="The value to filter the objects.")
+            Any, Path(description='The value to filter the objects.')
         ] = None,
     ) -> PaginatedResponse[T]:
-        pagination = PaginationRequest(skip=skip, limit=limit, query=query, value=value)
-        return await self.cls.get_all(pagination, owner=session_dependency.registration)
+        pagination = PaginationRequest(
+            skip=skip, limit=limit, query=query, value=value
+        )
+        return await self.cls.get_all(
+            pagination, owner=session_dependency.registration
+        )
 
 
 class ObjectDependency(Dependency, Generic[T]):
@@ -102,7 +115,12 @@ class ObjectDependency(Dependency, Generic[T]):
     Dependency to get an object by id.
     """
 
-    def __init__(self, cls: Type[T], foreign_key: str | None = None, relational_list: str | None = None) -> None:
+    def __init__(
+        self,
+        cls: type[T],
+        foreign_key: str | None = None,
+        relational_list: str | None = None,
+    ) -> None:
         self.cls = cls
         self.foreign_key = foreign_key
         self.relational_list = relational_list
@@ -113,7 +131,7 @@ class ObjectDependency(Dependency, Generic[T]):
         registration: Annotated[
             str,
             Path(
-                description="The registration of the object being fetched.",
+                description='The registration of the object being fetched.',
             ),
         ],
     ) -> T:
@@ -121,30 +139,32 @@ class ObjectDependency(Dependency, Generic[T]):
 
         if obj is None:
             raise HTTPException(
-                status_code=404, detail=f"{self.cls.__name__} does not exist"
+                status_code=404, detail=f'{self.cls.__name__} does not exist'
             )
 
-        users: list[str] = getattr(obj, "users", None)
+        users: list[str] = getattr(obj, 'users', None)
         authorized = False
 
         if users is not None:
             if session.registration in users:
                 authorized = True
-        
+
         if self.foreign_key:
             if getattr(obj, self.foreign_key, None) == session.registration:
                 authorized = True
             elif getattr(session, self.foreign_key, None) == obj.registration:
                 authorized = True
-                
+
         if self.relational_list:
             if session.registration in getattr(obj, self.relational_list, []):
                 authorized = True
-            elif obj.registration in getattr(session, self.relational_list, []):
+            elif obj.registration in getattr(
+                session, self.relational_list, []
+            ):
                 authorized = True
 
         if not authorized:
-            raise HTTPException(status_code=403, detail="Unauthorized")
+            raise HTTPException(status_code=403, detail='Unauthorized')
 
         return obj
 
@@ -160,7 +180,7 @@ class AdminObjectDependency(ObjectDependency[T]):
         registration: Annotated[
             str,
             Path(
-                description="The registration of the object being fetched.",
+                description='The registration of the object being fetched.',
             ),
         ],
     ) -> T:
@@ -168,11 +188,11 @@ class AdminObjectDependency(ObjectDependency[T]):
 
         if obj is None:
             raise HTTPException(
-                status_code=404, detail=f"{self.cls.__name__} does not exist"
+                status_code=404, detail=f'{self.cls.__name__} does not exist'
             )
 
         if obj.owner != session.registration:
-            raise HTTPException(status_code=403, detail="Unauthorized")
+            raise HTTPException(status_code=403, detail='Unauthorized')
 
         return obj
 
