@@ -14,4 +14,7 @@ DESCRIPTION = 'This is a chatbot that will receive Standard Operation Procedures
 DEBUG = os.getenv('DEBUG', 'False').capitalize() == 'True'
 SECRET_KEY = os.getenv('SECRET_KEY', 'This is my secret key')
 MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/sops')
+TEST_MONGO_URI = os.getenv(
+    'TEST_MONGO_URI', 'mongodb://localhost:27017/sops_test'
+)
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'This is my Gemini API key')

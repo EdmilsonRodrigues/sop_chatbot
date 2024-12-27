@@ -13,7 +13,7 @@ from routes.dependencies import (
     DeleteDependency,
     admin_dependency,
 )
-from session import db
+from sop_chatbot.session import db
 
 router = APIRouter(prefix='/departments', tags=['Admin: Departments'])
 departments_dependency = AdminListDependency(Department)

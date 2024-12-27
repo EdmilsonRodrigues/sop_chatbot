@@ -8,7 +8,7 @@ from fastapi.routing import APIRouter
 from models.users import User, UserResponse
 from routes.dependencies import session_dependency
 from services.auth import Auth
-from session import db
+from sop_chatbot.session import db
 
 router = APIRouter(tags=['Users'])
 

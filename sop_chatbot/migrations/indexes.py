@@ -2,7 +2,7 @@ import asyncio
 
 from pymongo import IndexModel
 
-from session import db
+from sop_chatbot.session import db
 
 
 async def create_indexes():

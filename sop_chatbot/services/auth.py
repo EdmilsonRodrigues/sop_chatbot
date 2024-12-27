@@ -5,7 +5,7 @@ import jwt
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 
-from config import SECRET_KEY
+from sop_chatbot.config import SECRET_KEY
 
 oauth_scheme = OAuth2PasswordBearer(tokenUrl='/api/auth/login')
 

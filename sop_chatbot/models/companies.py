@@ -4,7 +4,7 @@ from typing import Annotated
 from pydantic import Field
 
 from models.mixins import BaseClass, BaseRequest
-from session import db
+from sop_chatbot.session import db
 
 
 class CreateCompanyRequest(BaseRequest):

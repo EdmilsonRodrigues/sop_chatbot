@@ -9,7 +9,7 @@ from models.companies import Company, CreateCompanyRequest
 from models.departments import CreateDepartmentRequest, Department
 from models.mixins import CLASS_MAPPING, BaseClass, BaseRequest
 from services.auth import Auth
-from session import db
+from sop_chatbot.session import db
 
 
 class UserRoles(str, Enum):
@@ -39,7 +39,7 @@ class CreateAdminRequest(CreateUserRequest):
     ]
 
 
-class CommonUserRequest(BaseRequest):
+class CreateCommonUserRequest(BaseRequest):
     company: Annotated[str, Field(description='The company of the user')]
     departments: Annotated[
         list[str], Field(description='The department of the user')
@@ -151,7 +151,7 @@ class AdminResponse(UserResponse):
     ]
 
 
-class User(BaseUser, CommonUserRequest):
+class User(BaseUser, CreateCommonUserRequest):
     @classmethod
     async def gen_registration(cls, owner: str) -> tuple[str, str]:
         pipeline = [

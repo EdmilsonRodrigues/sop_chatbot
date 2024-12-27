@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from config import APP, DEBUG, DESCRIPTION, VERSION
+from sop_chatbot.config import APP, DEBUG, DESCRIPTION, VERSION
 from migrations.indexes import create_indexes
 from migrations.migrations import run_migrations
 from routes.api import router as api_router
