@@ -1,28 +1,29 @@
 import os
 
-from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 os.chdir(os.path.dirname(__file__))
 
-if os.path.exists('.env'):
-    load_dotenv()
 
-
-VERSION = '0.1.0'
-APP = 'SOPs Chatbot'
-DESCRIPTION = ' '.join(
-    (
-        'This is a chatbot that will receive Standard',
-        'Operation Procedures, manuals, and other documents',
-        'and will be able to answer questions about them.',
+class Settings(BaseSettings):
+    VERSION: str = '0.1.0'
+    APP: str = 'SOPs Chatbot'
+    DESCRIPTION: str = ' '.join(
+        (
+            'This is a chatbot that will receive Standard',
+            'Operation Procedures, manuals, and other documents',
+            'and will be able to answer questions about them.',
+        )
     )
-)
+    DEBUG: bool = False
+    SECRET_KEY: str = 'This is my secret key'
+    MONGO_URI: str = 'mongodb://localhost:27017/sops'
+    TEST_MONGO_URI: str = 'mongodb://localhost:27017/sops_test'
+    GEMINI_API_KEY: str = 'This is my Gemini API key'
+    model_config = SettingsConfigDict(
+        env_file='.env',
+        env_file_encoding='utf-8',
+    )
 
 
-DEBUG = os.getenv('DEBUG', 'False').capitalize() == 'True'
-SECRET_KEY = os.getenv('SECRET_KEY', 'This is my secret key')
-MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/sops')
-TEST_MONGO_URI = os.getenv(
-    'TEST_MONGO_URI', 'mongodb://localhost:27017/sops_test'
-)
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'This is my Gemini API key')
+settings = Settings()

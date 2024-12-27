@@ -1,6 +1,6 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from .config import MONGO_URI
+from .config import settings
 
-client = AsyncIOMotorClient(MONGO_URI)
+client = AsyncIOMotorClient(settings.MONGO_URI)
 db = client.get_database()

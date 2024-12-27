@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from .config import APP, DEBUG, DESCRIPTION, VERSION
+from .config import settings
 from .migrations.indexes import create_indexes
 from .migrations.migrations import run_migrations
 from .routes.api import router as api_router
@@ -35,14 +35,17 @@ tags_info = [
 async def lifespan(app: FastAPI):
     await asyncio.gather(create_indexes(), run_migrations())
     yield
+    from . import session
+
+    session.client.close()
     # Application shutdown
 
 
 app = FastAPI(
-    version=VERSION,
-    title=APP,
-    description=DESCRIPTION,
-    debug=DEBUG,
+    version=settings.VERSION,
+    title=settings.APP,
+    description=settings.DESCRIPTION,
+    debug=settings.DEBUG,
     lifespan=lifespan,
     openapi_tags=tags_info,
 )
@@ -56,7 +59,7 @@ class VersionInfo(BaseModel):
 
 @app.get('/', response_model=VersionInfo, tags=['Version'])
 def version():
-    return {'version': VERSION}
+    return {'version': settings.VERSION}
 
 
 if __name__ == '__main__':

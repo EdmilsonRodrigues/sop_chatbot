@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
 
 from ... import session
-from ...config import DEBUG
+from ...config import settings
 from ...models.companies import Company, CreateCompanyRequest
 from ...models.mixins import ActionResponse, PaginatedResponse
 from ...models.users import User
@@ -81,7 +81,7 @@ async def update_company(
 async def delete_company(
     company: Annotated[Company, Depends(delete_dependency)],
 ):
-    if not DEBUG:
+    if not settings.DEBUG:
         raise HTTPException(status_code=403, detail='Forbidden')
     deleted, _, _ = await asyncio.gather(
         company.delete(),

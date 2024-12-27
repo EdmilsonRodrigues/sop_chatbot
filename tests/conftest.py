@@ -4,7 +4,7 @@ from httpx import ASGITransport, AsyncClient
 
 from sop_chatbot.main import app
 
-pytest_plugins = ['tests.fixtures']
+pytest_plugins = ['tests.fixtures.user_fixtures']
 
 
 @pytest.fixture
@@ -22,21 +22,56 @@ def async_client():
 
 
 @pytest.fixture
-def admin_request():
-    return {
-        'email': 'planetaedevelopment@gmail.com',
-        'company_name': 'Planetae Development',
-        'company_description': ' '.join(
-            (
-                'A company focused on developing high',
-                'quality business automations and webapplications.',
-            ),
-        ),
-        'name': 'Edmilson Monteiro Rodrigues Neto',
-        'password': 'This is not my real password',
-    }
+def awaitable_none():
+    async def _awaitable_none():
+        return None
+
+    return _awaitable_none
 
 
 @pytest.fixture
-def user_request():
-    return {}
+def awaitable_true():
+    async def _awaitable_true():
+        return True
+
+    return _awaitable_true
+
+
+@pytest.fixture
+def awaitable_false():
+    async def _awaitable_false():
+        return False
+
+    return _awaitable_false
+
+
+@pytest.fixture
+def awaitable_empty_list():
+    async def _awaitable_empty_list():
+        return []
+
+    return _awaitable_empty_list
+
+
+@pytest.fixture
+def awaitable_empty_dict():
+    async def _awaitable_empty_dict():
+        return {}
+
+    return _awaitable_empty_dict
+
+
+@pytest.fixture
+def awaitable_empty_string():
+    async def _awaitable_empty_string():
+        return ''
+
+    return _awaitable_empty_string
+
+
+@pytest.fixture
+def awaitable_empty_int():
+    async def _awaitable_empty_int():
+        return 0
+
+    return _awaitable_empty_int

@@ -702,6 +702,19 @@ wheels = [
 ]
 
 [[package]]
+name = "pydantic-settings"
+version = "2.7.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/86/41/19b62b99e7530cfa1d6ccd16199afd9289a12929bef1a03aa4382b22e683/pydantic_settings-2.7.0.tar.gz", hash = "sha256:ac4bfd4a36831a48dbf8b2d9325425b549a0a6f18cea118436d728eb4f1c4d66", size = 79743 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f9/00/57b4540deb5c3a39ba689bb519a4e03124b24ab8589e618be4aac2c769bd/pydantic_settings-2.7.0-py3-none-any.whl", hash = "sha256:e00c05d5fa6cbbb227c84bd7487c5c1065084119b750df7c8c1a554aed236eb5", size = 29549 },
+]
+
+[[package]]
 name = "pygments"
 version = "2.18.0"
 source = { registry = "https://pypi.org/simple" }
@@ -990,6 +1003,7 @@ name = "sop-chatbot"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "cachetools" },
     { name = "fastapi", extra = ["standard"] },
     { name = "google" },
     { name = "httpx" },
@@ -997,6 +1011,7 @@ dependencies = [
     { name = "ops" },
     { name = "orjson" },
     { name = "pydantic", extra = ["email"] },
+    { name = "pydantic-settings" },
     { name = "pyjwt" },
     { name = "pymongo" },
     { name = "python-dotenv" },
@@ -1020,6 +1035,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "cachetools", specifier = ">=5.5.0" },
     { name = "fastapi", extras = ["standard"], specifier = "==0.115.6" },
     { name = "google", specifier = "==3.0.0" },
     { name = "httpx", specifier = "==0.28.1" },
@@ -1027,6 +1043,7 @@ requires-dist = [
     { name = "ops", specifier = ">=2.17.1" },
     { name = "orjson", specifier = "==3.10.12" },
     { name = "pydantic", extras = ["email"], specifier = "==2.10.4" },
+    { name = "pydantic-settings", specifier = ">=2.7.0" },
     { name = "pyjwt", specifier = "==2.10.1" },
     { name = "pymongo", specifier = "==4.9.2" },
     { name = "python-dotenv", specifier = "==1.0.1" },

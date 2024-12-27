@@ -4,11 +4,11 @@ from datetime import datetime
 from importlib import import_module
 
 from .. import session
-from ..config import VERSION
+from ..config import settings
 
-MAIN_VERSION = int(VERSION.split('.')[0])
-SUB_VERSION = int(VERSION.split('.')[1])
-PATCH = int(VERSION.split('.')[2])
+MAIN_VERSION = int(settings.VERSION.split('.')[0])
+SUB_VERSION = int(settings.VERSION.split('.')[1])
+PATCH = int(settings.VERSION.split('.')[2])
 
 
 async def run_migrations():

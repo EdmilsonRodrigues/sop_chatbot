@@ -246,7 +246,7 @@ class Admin(BaseUser, CreateAdminRequest):
     ]
 
     @classmethod
-    async def gen_registration(cls, owner: None) -> tuple[str, str]:
+    async def gen_registration(cls, owner: None = None) -> tuple[str, str]:
         registration = CLASS_MAPPING['User'] + '.'
         all_users = await session.db[cls.table_name()].count_documents({})
         registration += str(all_users + 1).zfill(4)

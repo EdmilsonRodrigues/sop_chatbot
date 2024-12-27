@@ -1,20 +1,23 @@
 import pytest
 from motor.motor_asyncio import AsyncIOMotorClient
 
-import sop_chatbot.config as config
 import sop_chatbot.session as session
+from sop_chatbot.config import settings
 
-session.db = AsyncIOMotorClient(config.TEST_MONGO_URI).get_database()
+session.db = AsyncIOMotorClient(settings.TEST_MONGO_URI).get_database()
 
 
-async def clear_db():
-    db = config.TEST_MONGO_URI.split('/')[-1]
-    await session.db.client.drop_database(db)
+def clear_db():
+    import asyncio
+
+    db = settings.TEST_MONGO_URI.split('/')[-1]
+    asyncio.get_event_loop().run_until_complete(
+        session.db.client.drop_database(db)
+    )
 
 
 @pytest.mark.asyncio(loop_scope='session')
 async def test_signup(admin_request, async_client):
-    await clear_db()
     response = await async_client.post('/auth/signup', json=admin_request)
     if response.status_code // 100 != 2:
         assert response.json() == {}

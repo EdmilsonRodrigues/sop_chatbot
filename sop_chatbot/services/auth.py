@@ -2,10 +2,11 @@ from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 
 import jwt
+from cachetools import TTLCache, cached
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 
-from ..config import SECRET_KEY
+from ..config import settings
 
 oauth_scheme = OAuth2PasswordBearer(tokenUrl='/api/auth/login')
 
@@ -16,6 +17,8 @@ class AuthResponse(BaseModel):
 
 
 class Auth:
+    cache = TTLCache(maxsize=100, ttl=1800)
+
     @staticmethod
     def generate_jwt(user_registration: str) -> str:
         """
@@ -30,11 +33,12 @@ class Auth:
         payload = {
             'user_registration': user_registration,
             'exp': datetime.now(UTC) + timedelta(days=7),
-            'secret': SECRET_KEY,
+            'secret': settings.SECRET_KEY,
         }
-        return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+        return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
 
     @staticmethod
+    @cached(cache)
     def decode_jwt(token: str) -> dict | None:
         """
         Decode a JSON Web Token (JWT).
@@ -46,7 +50,7 @@ class Auth:
         :rtype: dict | None
         """
         try:
-            return jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+            return jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         except jwt.ExpiredSignatureError:
             return None
         except jwt.InvalidTokenError:
@@ -63,7 +67,7 @@ class Auth:
         :return: The hashed password.
         :rtype: str
         """
-        password += SECRET_KEY
+        password += settings.SECRET_KEY
         return sha256(password.encode()).hexdigest()
 
     @staticmethod
