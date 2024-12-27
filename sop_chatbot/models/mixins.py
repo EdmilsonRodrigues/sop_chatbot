@@ -151,7 +151,6 @@ class BaseClass(BaseRequest, ABC):
                 id=str(obj['_id']),
                 **obj,
             )
-        return None
 
     @classmethod
     async def get_by_field(cls, key: str, value: Any):
@@ -161,7 +160,6 @@ class BaseClass(BaseRequest, ABC):
                 id=str(obj['_id']),
                 **obj,
             )
-        return None
 
     @classmethod
     async def get_all(
