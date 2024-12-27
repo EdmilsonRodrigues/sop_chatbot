@@ -3,8 +3,8 @@ from collections.abc import AsyncGenerator, Callable
 from datetime import datetime
 from importlib import import_module
 
+from .. import session
 from ..config import VERSION
-from ..session import db
 
 MAIN_VERSION = int(VERSION.split('.')[0])
 SUB_VERSION = int(VERSION.split('.')[1])
@@ -15,7 +15,7 @@ async def run_migrations():
     async for migration in get_migrations():
         migration_name = await migration()
         print(f'Migration {migration_name} ran successfully')
-        await db.migrations.insert_one(
+        await session.db.migrations.insert_one(
             {'name': migration_name, 'run_at': datetime.now()}
         )
     print('All migrations ran successfully')
@@ -27,7 +27,7 @@ async def get_migrations() -> AsyncGenerator[Callable]:
         for f in os.listdir('migrations')
         if f.startswith('migration_')
     ]
-    ran_migrations = set(await db.migrations.find().distinct('name'))
+    ran_migrations = set(await session.db.migrations.find().distinct('name'))
     for migration in all_migrations:
         version = int(migration.split('_')[1])
         subversion = int(migration.split('_')[2])

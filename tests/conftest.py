@@ -2,17 +2,14 @@ import pytest
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 
-import sop_chatbot.config as config
-import sop_chatbot.session as session
 from sop_chatbot.main import app
 
 pytest_plugins = ['tests.fixtures']
 
 
-def stub_db():
-    from motor.motor_asyncio import AsyncIOMotorClient
-
-    session.db = AsyncIOMotorClient(config.TEST_MONGO_URI).get_database()
+@pytest.fixture
+def client():
+    return TestClient(app)
 
 
 @pytest.fixture
@@ -25,11 +22,6 @@ def async_client():
 
 
 @pytest.fixture
-def client():
-    return TestClient(app)
-
-
-@pytest.fixture
 def admin_request():
     return {
         'email': 'planetaedevelopment@gmail.com',
@@ -37,7 +29,7 @@ def admin_request():
         'company_description': ' '.join(
             (
                 'A company focused on developing high',
-            'quality business automations and webapplications.'
+                'quality business automations and webapplications.',
             ),
         ),
         'name': 'Edmilson Monteiro Rodrigues Neto',

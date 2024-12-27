@@ -2,13 +2,21 @@ import os
 
 from dotenv import load_dotenv
 
+os.chdir(os.path.dirname(__file__))
+
 if os.path.exists('.env'):
     load_dotenv()
 
 
 VERSION = '0.1.0'
 APP = 'SOPs Chatbot'
-DESCRIPTION = 'This is a chatbot that will receive Standard Operation Procedures, manuals, and other documents and will be able to answer questions about them.'
+DESCRIPTION = ' '.join(
+    (
+        'This is a chatbot that will receive Standard',
+        'Operation Procedures, manuals, and other documents',
+        'and will be able to answer questions about them.',
+    )
+)
 
 
 DEBUG = os.getenv('DEBUG', 'False').capitalize() == 'True'

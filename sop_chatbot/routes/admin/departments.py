@@ -4,10 +4,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.responses import ORJSONResponse
 
+from ... import session
 from ...models.departments import CreateDepartmentRequest, Department
 from ...models.mixins import ActionResponse, PaginatedResponse
 from ...models.users import User
-from ...session import db
 from ..dependencies import (
     AdminListDependency,
     AdminObjectDependency,
@@ -79,7 +79,7 @@ async def delete_department(
 ):
     deleted, _ = await asyncio.gather(
         department.delete(),
-        db.users.update_many(
+        session.db.users.update_many(
             {'departments': {'$in': [department.registration]}},
             {'$pull': {'departments': department.registration}},
         ),

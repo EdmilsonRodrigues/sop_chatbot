@@ -5,11 +5,11 @@ from typing import Annotated
 
 from pydantic import EmailStr, Field
 
+from .. import session
 from ..models.companies import Company, CreateCompanyRequest
 from ..models.departments import CreateDepartmentRequest, Department
 from ..models.mixins import CLASS_MAPPING, BaseClass, BaseRequest
 from ..services.auth import Auth
-from ..session import db
 
 
 class UserRoles(str, Enum):
@@ -30,7 +30,8 @@ class CreateAdminRequest(CreateUserRequest):
     email: Annotated[
         EmailStr,
         Field(
-            description='The email of the user. Only the owner of the plan has their email registrationed'
+            description='The email of the user. Only the owner of the plan'
+            + ' has their email registrationed'
         ),
     ]
     company_name: Annotated[str, Field(description='The name of the company')]
@@ -68,7 +69,7 @@ class BaseUser(BaseClass, CreateUserRequest, ABC):
             create_request.password
         )
         id = (
-            await db[cls.table_name()].insert_one(
+            await session.db[cls.table_name()].insert_one(
                 {
                     **create_request.mongo(),
                     'owner': updated_owner,
@@ -90,7 +91,7 @@ class BaseUser(BaseClass, CreateUserRequest, ABC):
 
     @classmethod
     async def get(cls, registration: str):
-        obj = await db[cls.table_name()].find_one(
+        obj = await session.db[cls.table_name()].find_one(
             {'registration': registration}
         )
         if obj:
@@ -146,7 +147,8 @@ class AdminResponse(UserResponse):
     email: Annotated[
         EmailStr,
         Field(
-            description='The email of the user. Only the owner of the plan has their email registrationed'
+            description='The email of the user. Only the owner of the'
+            + ' plan has their email registrationed'
         ),
     ]
 
@@ -197,7 +199,9 @@ class User(BaseUser, CreateCommonUserRequest):
             {'$sort': {'registration': -1}},
             {'$limit': 1},
         ]
-        result = await db.users.aggregate(pipeline).to_list(length=1)
+        result = await session.session.db.users.aggregate(pipeline).to_list(
+            length=1
+        )
         highest_registration = result[0]['registration']
         return '.'.join(owner.split('.')[0:2]) + '.' + str(
             highest_registration
@@ -212,7 +216,7 @@ class User(BaseUser, CreateCommonUserRequest):
             create_request.password
         )
         id = (
-            await db[cls.table_name()].insert_one(
+            await session.db[cls.table_name()].insert_one(
                 {
                     **create_request.mongo(),
                     'owner': updated_owner,
@@ -244,7 +248,7 @@ class Admin(BaseUser, CreateAdminRequest):
     @classmethod
     async def gen_registration(cls, owner: None) -> tuple[str, str]:
         registration = CLASS_MAPPING['User'] + '.'
-        all_users = await db[cls.table_name()].count_documents({})
+        all_users = await session.db[cls.table_name()].count_documents({})
         registration += str(all_users + 1).zfill(4)
         registration += '.000'
         return registration, registration
@@ -264,7 +268,12 @@ class Admin(BaseUser, CreateAdminRequest):
         department = await Department.create(
             CreateDepartmentRequest(
                 name='administration',
-                description='This department is only accessible by the administration',
+                description=' '.join(
+                    (
+                        'This department is only accessible',
+                        'by the administration',
+                    )
+                ),
             ),
             owner=company.owner,
             company=company.registration,
@@ -273,7 +282,7 @@ class Admin(BaseUser, CreateAdminRequest):
             create_request.password
         )
         id = (
-            await db[cls.table_name()].insert_one(
+            await session.db[cls.table_name()].insert_one(
                 {
                     **create_request.mongo(),
                     'owner': updated_owner,

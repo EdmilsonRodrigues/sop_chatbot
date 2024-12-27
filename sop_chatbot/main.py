@@ -1,5 +1,4 @@
 import asyncio
-import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -9,8 +8,6 @@ from .config import APP, DEBUG, DESCRIPTION, VERSION
 from .migrations.indexes import create_indexes
 from .migrations.migrations import run_migrations
 from .routes.api import router as api_router
-
-os.chdir(os.path.dirname(__file__))
 
 tags_info = [
     {'name': 'Version', 'description': 'Version information'},
@@ -63,6 +60,7 @@ def version():
 
 
 if __name__ == '__main__':
+    # Run this module with uvicorn sop_chatbot.main:app --loop uvloop
     import uvicorn
 
-    uvicorn.run(app, host='0.0.0.0', port=8000)
+    uvicorn.run(app, host='0.0.0.0', port=8000, reload=True, loop='uvloop')

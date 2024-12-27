@@ -6,7 +6,7 @@ from typing import Annotated, Any, Generic, TypeVar
 from bson import ObjectId
 from pydantic import BaseModel, Field
 
-from ..session import db
+from .. import session
 
 CLASS_MAPPING = {
     'User': '001',
@@ -96,7 +96,7 @@ class BaseClass(BaseRequest, ABC):
         for key, value in data.items():
             if value is not None:
                 setattr(self, key, value)
-        await db[self.table_name()].update_one(
+        await session.db[self.table_name()].update_one(
             {'_id': ObjectId(self.id)}, {'$set': self.mongo()}
         )
         return self
@@ -107,7 +107,7 @@ class BaseClass(BaseRequest, ABC):
         updated_at = datetime.now()
         registration = await cls.gen_registration(owner)
         id = (
-            await db[cls.table_name()].insert_one(
+            await session.db[cls.table_name()].insert_one(
                 {
                     **create_request.mongo(),
                     'registration': registration,
@@ -135,7 +135,7 @@ class BaseClass(BaseRequest, ABC):
         registration = CLASS_MAPPING[cls.__name__] + '.'
         owner_part = owner.split('.')[1]
         registration += owner_part + '.'
-        all_companies = await db[cls.table_name()].count_documents(
+        all_companies = await session.db[cls.table_name()].count_documents(
             {'owner': owner}
         )
         registration += str(all_companies + 1).zfill(3)
@@ -143,7 +143,7 @@ class BaseClass(BaseRequest, ABC):
 
     @classmethod
     async def get(cls, registration: str):
-        obj = await db[cls.table_name()].find_one(
+        obj = await session.db[cls.table_name()].find_one(
             {'registration': registration}
         )
         if obj:
@@ -155,7 +155,7 @@ class BaseClass(BaseRequest, ABC):
 
     @classmethod
     async def get_by_field(cls, key: str, value: Any):
-        obj = await db[cls.table_name()].find_one({key: value})
+        obj = await session.db[cls.table_name()].find_one({key: value})
         if obj:
             return cls(
                 id=str(obj['_id']),
@@ -173,7 +173,9 @@ class BaseClass(BaseRequest, ABC):
     ) -> 'PaginatedResponse':
         find = {'owner': owner}
         if user_registration is not None:
-            user = await db.users.find_one({'registration': user_registration})
+            user = await session.db.users.find_one(
+                {'registration': user_registration}
+            )
             if user is None:
                 return PaginatedResponse(pagination=Pagination(), results=[])
             find['company'] = user['company']
@@ -192,12 +194,12 @@ class BaseClass(BaseRequest, ABC):
                 }
             )
         objs = (
-            db[cls.table_name()]
+            session.db[cls.table_name()]
             .find(find)
             .skip(pagination_request.skip)
             .limit(pagination_request.limit)
         )
-        total = await db[cls.table_name()].count_documents(find)
+        total = await session.db[cls.table_name()].count_documents(find)
         results = [
             cls(
                 id=str(obj['_id']),
@@ -213,7 +215,7 @@ class BaseClass(BaseRequest, ABC):
         return PaginatedResponse(pagination=pagination, results=results)
 
     async def delete(self) -> ActionResponse:
-        await db[self.table_name()].delete_one(
+        await session.db[self.table_name()].delete_one(
             {'registration': self.registration}
         )
         return ActionResponse(

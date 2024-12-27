@@ -4,11 +4,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
 
+from ... import session
 from ...config import DEBUG
 from ...models.companies import Company, CreateCompanyRequest
 from ...models.mixins import ActionResponse, PaginatedResponse
 from ...models.users import User
-from ...session import db
 from ..dependencies import (
     AdminListDependency,
     AdminObjectDependency,
@@ -85,7 +85,7 @@ async def delete_company(
         raise HTTPException(status_code=403, detail='Forbidden')
     deleted, _, _ = await asyncio.gather(
         company.delete(),
-        db.users.delete_many({'company': company.registration}),
-        db.departments.delete_many({'company': company.registration}),
+        session.db.users.delete_many({'company': company.registration}),
+        session.db.departments.delete_many({'company': company.registration}),
     )
     return deleted.model_dump()

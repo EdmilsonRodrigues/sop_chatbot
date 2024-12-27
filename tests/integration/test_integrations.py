@@ -1,7 +1,12 @@
 import pytest
+from motor.motor_asyncio import AsyncIOMotorClient
 
+import sop_chatbot.config as config
+import sop_chatbot.session as session
 from sop_chatbot.models.mixins import CLASS_MAPPING
 from sop_chatbot.models.users import UserRoles
+
+session.db = AsyncIOMotorClient(config.TEST_MONGO_URI).get_database()
 
 
 @pytest.mark.asyncio(loop_scope='session')
@@ -11,14 +16,14 @@ async def test_signup(admin_request, async_client):
         assert response.json() == {}
     assert response.status_code == 201
     user = response.json()
-    assert user['company'].startswith(CLASS_MAPPING['Company'])
+    assert user['company'].startswith('002')
     assert user['company'].endswith('001')
     assert len(user['departments']) == 1
-    assert user['departments'][0].startswith(CLASS_MAPPING['Department'])
+    assert user['departments'][0].startswith('003')
     assert user['departments'][0].endswith('001')
     assert user['id'] is not None
-    assert user['name'] == admin_request['name']
-    assert user['email'] == admin_request['email']
+    assert user['name'] == 'Edmilson Monteiro Rodrigues Neto'
+    assert user['email'] == 'planetaedevelopment@gmail.com'
     assert user['owner'] == user['registration']
     assert user['role'] == UserRoles.ADMIN.value
     common = user['owner'].split('.')[1]
@@ -31,8 +36,22 @@ async def test_signup(admin_request, async_client):
     admin_registration = user['registration']
 
 
+{
+    'email': 'planetaedevelopment@gmail.com',
+    'company_name': 'Planetae Development',
+    'company_description': ' '.join(
+        (
+            'A company focused on developing high',
+            'quality business automations and webapplications.',
+        ),
+    ),
+    'name': 'Edmilson Monteiro Rodrigues Neto',
+    'password': 'This is not my real password',
+}
+
+
 @pytest.mark.asyncio(loop_scope='session')
-async def test_admin_login(admin_request):
+async def test_admin_login(admin_request, async_client):
     response = await async_client.post(
         '/auth/login',
         data={
@@ -51,7 +70,7 @@ async def test_admin_login(admin_request):
 
 
 @pytest.mark.asyncio(loop_scope='session')
-async def test_get_me_admin(admin_request):
+async def test_get_admin(admin_request, async_client):
     response = await async_client.get('/me/', headers=admin_headers)
     if response.status_code // 100 != 2:
         assert response.json() == {}
@@ -63,11 +82,11 @@ async def test_get_me_admin(admin_request):
     assert user['departments'][0].startswith(CLASS_MAPPING['Department'])
     assert user['departments'][0].endswith('001')
     assert user['id'] is not None
-    assert user['name'] == admin_request['name']
+    assert user['name'] == 'Edmilson Monteiro Rodrigues Neto'
 
 
 @pytest.mark.asyncio(loop_scope='session')
-async def test_get_my_company(admin_request):
+async def test_get_admin_company(admin_request, async_client):
     response = await async_client.get('me/companies/', headers=admin_headers)
     if response.status_code // 100 != 2:
         assert response.json() == {}
@@ -78,7 +97,7 @@ async def test_get_my_company(admin_request):
 
 
 @pytest.mark.asyncio(loop_scope='session')
-async def test_get_my_departments():
+async def test_get_admin_departments(async_client):
     response = await async_client.get('me/departments/', headers=admin_headers)
     if response.status_code // 100 != 2:
         assert response.json() == {}
@@ -101,7 +120,7 @@ async def test_get_my_departments():
 
 
 @pytest.mark.asyncio(loop_scope='session')
-async def test_get_my_department():
+async def test_get_admin_department(async_client):
     response = await async_client.get(
         f'me/departments/{department_registration}', headers=admin_headers
     )
@@ -117,7 +136,7 @@ async def test_get_my_department():
 
 
 @pytest.mark.asyncio(loop_scope='session')
-async def test_update_my_name(admin_request):
+async def test_update_admin_name(admin_request, async_client):
     response = await async_client.put(
         'me/', headers=admin_headers, json={'name': 'Edmilson Rodrigues'}
     )
@@ -145,7 +164,7 @@ async def test_update_my_name(admin_request):
 
 
 @pytest.mark.asyncio(loop_scope='session')
-async def test_update_my_password(admin_request):
+async def test_update_admin_password(admin_request, async_client):
     global admin_headers, password
     response = await async_client.put(
         'me/password',
@@ -159,7 +178,7 @@ async def test_update_my_password(admin_request):
         assert response.json() == {}
     assert response.status_code == 200
     user = response.json()
-    assert user['name'] == admin_request['name']
+    assert user['name'] == 'Edmilson Rodrigues'
     assert user['company'].startswith(CLASS_MAPPING['Company'])
     assert user['company'].endswith('001')
     assert len(user['departments']) == 1
@@ -189,7 +208,7 @@ async def test_update_my_password(admin_request):
 
 
 @pytest.mark.asyncio(loop_scope='session')
-async def test_admin_get_users(admin_request):
+async def test_admin_get_users(admin_request, async_client):
     response = await async_client.get('admin/users/', headers=admin_headers)
     if response.status_code // 100 != 2:
         assert response.json() == {}

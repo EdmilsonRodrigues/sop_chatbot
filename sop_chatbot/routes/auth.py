@@ -53,7 +53,8 @@ async def signup(
     ],
 ):
     """
-    Signup a user to the system. Required the user's name, email, password, and department.
+    Signup a user to the system.
+    Required the user's name, email, password, and department.
     """
     create_user_request.role = UserRoles.ADMIN
     user = await Admin.create(create_user_request, owner=None)

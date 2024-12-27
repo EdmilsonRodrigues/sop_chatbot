@@ -3,8 +3,8 @@ from typing import Annotated
 
 from pydantic import Field
 
+from .. import session
 from ..models.mixins import BaseClass, BaseRequest
-from ..session import db
 
 
 class CreateCompanyRequest(BaseRequest):
@@ -25,7 +25,7 @@ class Company(BaseClass, CreateCompanyRequest):
         updated_at = datetime.now()
         registration = await cls.gen_registration(owner)
         id = (
-            await db[cls.table_name()].insert_one(
+            await session.db[cls.table_name()].insert_one(
                 {
                     **create_request.mongo(),
                     'registration': registration,
