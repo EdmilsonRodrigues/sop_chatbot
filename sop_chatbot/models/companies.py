@@ -1,9 +1,10 @@
 from datetime import datetime
 from typing import Annotated
 
-from models.mixins import BaseClass, BaseRequest
 from pydantic import Field
-from session import db
+
+from ..models.mixins import BaseClass, BaseRequest
+from ..session import db
 
 
 class CreateCompanyRequest(BaseRequest):

@@ -1,17 +1,18 @@
 import pytest
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
-from main import app
+
+import sop_chatbot.config as config
+import sop_chatbot.session as session
+from sop_chatbot.main import app
 
 pytest_plugins = ['tests.fixtures']
 
 
 def stub_db():
-    import session as session
-    from config import TEST_MONGO_URI
     from motor.motor_asyncio import AsyncIOMotorClient
 
-    session.db = AsyncIOMotorClient(TEST_MONGO_URI).get_database()
+    session.db = AsyncIOMotorClient(config.TEST_MONGO_URI).get_database()
 
 
 @pytest.fixture
@@ -34,8 +35,10 @@ def admin_request():
         'email': 'planetaedevelopment@gmail.com',
         'company_name': 'Planetae Development',
         'company_description': ' '.join(
-            'A company focused on developing high',
-            'quality business automations and webapplications.',
+            (
+                'A company focused on developing high',
+            'quality business automations and webapplications.'
+            ),
         ),
         'name': 'Edmilson Monteiro Rodrigues Neto',
         'password': 'This is not my real password',

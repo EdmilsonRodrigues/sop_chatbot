@@ -3,16 +3,17 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import ORJSONResponse
-from models.departments import CreateDepartmentRequest, Department
-from models.mixins import ActionResponse, PaginatedResponse
-from models.users import User
-from routes.dependencies import (
+
+from ...models.departments import CreateDepartmentRequest, Department
+from ...models.mixins import ActionResponse, PaginatedResponse
+from ...models.users import User
+from ...session import db
+from ..dependencies import (
     AdminListDependency,
     AdminObjectDependency,
     DeleteDependency,
     admin_dependency,
 )
-from session import db
 
 router = APIRouter(prefix='/departments', tags=['Admin: Departments'])
 departments_dependency = AdminListDependency(Department)

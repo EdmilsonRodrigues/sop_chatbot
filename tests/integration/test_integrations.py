@@ -1,12 +1,7 @@
-import os
-import sys
-
 import pytest
 
-# Add the root directory to the Python path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
-from models.mixins import CLASS_MAPPING
-from models.users import UserRoles
+from sop_chatbot.models.mixins import CLASS_MAPPING
+from sop_chatbot.models.users import UserRoles
 
 
 @pytest.mark.asyncio(loop_scope='session')

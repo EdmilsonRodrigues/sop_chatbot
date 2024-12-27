@@ -4,10 +4,11 @@ from bson import ObjectId
 from fastapi import Body, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
 from fastapi.routing import APIRouter
-from models.users import User, UserResponse
-from routes.dependencies import session_dependency
-from services.auth import Auth
-from session import db
+
+from ...models.users import User, UserResponse
+from ...services.auth import Auth
+from ...session import db
+from ..dependencies import session_dependency
 
 router = APIRouter(tags=['Users'])
 

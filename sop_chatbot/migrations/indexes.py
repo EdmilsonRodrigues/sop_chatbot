@@ -1,7 +1,8 @@
 import asyncio
 
 from pymongo import IndexModel
-from session import db
+
+from ..session import db
 
 
 async def create_indexes():

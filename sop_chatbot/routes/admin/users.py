@@ -2,14 +2,15 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
-from models.mixins import ActionResponse, PaginatedResponse
-from models.users import (
+
+from ...models.mixins import ActionResponse, PaginatedResponse
+from ...models.users import (
     CreateUserRequest,
     UpdateUserRequest,
     User,
     UserResponse,
 )
-from routes.dependencies import (
+from ..dependencies import (
     AdminListDependency,
     AdminObjectDependency,
     DeleteDependency,

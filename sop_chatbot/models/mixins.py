@@ -5,7 +5,8 @@ from typing import Annotated, Any, Generic, TypeVar
 
 from bson import ObjectId
 from pydantic import BaseModel, Field
-from session import db
+
+from ..session import db
 
 CLASS_MAPPING = {
     'User': '001',

@@ -3,9 +3,10 @@ from typing import Annotated
 from fastapi import Depends
 from fastapi.responses import ORJSONResponse
 from fastapi.routing import APIRouter
-from models.companies import Company
-from models.users import User
-from routes.dependencies import session_dependency
+
+from ...models.companies import Company
+from ...models.users import User
+from ..dependencies import session_dependency
 
 router = APIRouter(prefix='/companies', tags=['Companies'])
 

@@ -1,7 +1,8 @@
 from fastapi import APIRouter
-from routes.admin.companies import router as companies_router
-from routes.admin.departments import router as departments_router
-from routes.admin.users import router as users_router
+
+from .companies import router as companies_router
+from .departments import router as departments_router
+from .users import router as users_router
 
 router = APIRouter(prefix='/admin', tags=['Admin'])
 

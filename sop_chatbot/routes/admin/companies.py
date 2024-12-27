@@ -1,19 +1,20 @@
 import asyncio
 from typing import Annotated
 
-from config import DEBUG
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
-from models.companies import Company, CreateCompanyRequest
-from models.mixins import ActionResponse, PaginatedResponse
-from models.users import User
-from routes.dependencies import (
+
+from ...config import DEBUG
+from ...models.companies import Company, CreateCompanyRequest
+from ...models.mixins import ActionResponse, PaginatedResponse
+from ...models.users import User
+from ...session import db
+from ..dependencies import (
     AdminListDependency,
     AdminObjectDependency,
     DeleteDependency,
     admin_dependency,
 )
-from session import db
 
 router = APIRouter(prefix='/companies', tags=['Admin: Companies'])
 companies_dependency = AdminListDependency(Company)

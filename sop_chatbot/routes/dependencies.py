@@ -2,14 +2,15 @@ from abc import ABC, abstractmethod
 from typing import Annotated, Any, Generic
 
 from fastapi import Depends, HTTPException, Path
-from models.mixins import (
+
+from ..models.mixins import (
     ActionResponse,
     PaginatedResponse,
     PaginationRequest,
     T,
 )
-from models.users import User
-from services.auth import Auth, oauth_scheme
+from ..models.users import User
+from ..services.auth import Auth, oauth_scheme
 
 
 async def session_dependency(

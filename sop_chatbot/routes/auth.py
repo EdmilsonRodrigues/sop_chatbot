@@ -4,14 +4,15 @@ from fastapi import Body, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
 from fastapi.routing import APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
-from models.users import (
+
+from ..models.users import (
     Admin,
     AdminResponse,
     CreateAdminRequest,
     User,
     UserRoles,
 )
-from services.auth import Auth, AuthResponse
+from ..services.auth import Auth, AuthResponse
 
 router = APIRouter(prefix='/auth', tags=['Auth'])
 

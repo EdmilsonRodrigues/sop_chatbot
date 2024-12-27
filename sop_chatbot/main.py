@@ -2,14 +2,15 @@ import asyncio
 import os
 from contextlib import asynccontextmanager
 
-from config import APP, DEBUG, DESCRIPTION, VERSION
 from fastapi import FastAPI
-from migrations.indexes import create_indexes
-from migrations.migrations import run_migrations
 from pydantic import BaseModel
-from routes.api import router as api_router
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+from .config import APP, DEBUG, DESCRIPTION, VERSION
+from .migrations.indexes import create_indexes
+from .migrations.migrations import run_migrations
+from .routes.api import router as api_router
+
+os.chdir(os.path.dirname(__file__))
 
 tags_info = [
     {'name': 'Version', 'description': 'Version information'},
