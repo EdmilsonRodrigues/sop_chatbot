@@ -1,17 +1,15 @@
 import pytest
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
-
-from sop_chatbot.main import app
+from main import app
 
 pytest_plugins = ['tests.fixtures']
 
 
 def stub_db():
+    import session as session
+    from config import TEST_MONGO_URI
     from motor.motor_asyncio import AsyncIOMotorClient
-
-    import sop_chatbot.session as session
-    from sop_chatbot.config import TEST_MONGO_URI
 
     session.db = AsyncIOMotorClient(TEST_MONGO_URI).get_database()
 

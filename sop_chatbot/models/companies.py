@@ -1,10 +1,9 @@
 from datetime import datetime
 from typing import Annotated
 
-from pydantic import Field
-
 from models.mixins import BaseClass, BaseRequest
-from sop_chatbot.session import db
+from pydantic import Field
+from session import db
 
 
 class CreateCompanyRequest(BaseRequest):

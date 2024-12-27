@@ -1,5 +1,4 @@
 from fastapi import APIRouter
-
 from routes.manager.companies import router as companies_router
 from routes.manager.departments import router as departments_router
 from routes.manager.users import router as users_router

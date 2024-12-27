@@ -3,13 +3,12 @@ from datetime import datetime
 from enum import Enum
 from typing import Annotated
 
-from pydantic import EmailStr, Field
-
 from models.companies import Company, CreateCompanyRequest
 from models.departments import CreateDepartmentRequest, Department
 from models.mixins import CLASS_MAPPING, BaseClass, BaseRequest
+from pydantic import EmailStr, Field
 from services.auth import Auth
-from sop_chatbot.session import db
+from session import db
 
 
 class UserRoles(str, Enum):

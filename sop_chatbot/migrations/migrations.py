@@ -3,8 +3,8 @@ from collections.abc import AsyncGenerator, Callable
 from datetime import datetime
 from importlib import import_module
 
-from sop_chatbot.config import VERSION
-from sop_chatbot.session import db
+from config import VERSION
+from session import db
 
 MAIN_VERSION = int(VERSION.split('.')[0])
 SUB_VERSION = int(VERSION.split('.')[1])

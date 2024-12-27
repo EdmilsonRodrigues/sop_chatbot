@@ -1,5 +1,4 @@
 from fastapi import APIRouter
-
 from routes.admin.admin import router as admin_router
 from routes.admin_portal.admin_portal import router as admin_portal_router
 from routes.auth import router as auth_router

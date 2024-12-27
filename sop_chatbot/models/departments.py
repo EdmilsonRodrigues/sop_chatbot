@@ -1,8 +1,7 @@
 from typing import Annotated
 
-from pydantic import Field
-
 from models.mixins import BaseClass, BaseRequest
+from pydantic import Field
 
 
 class CreateDepartmentRequest(BaseRequest):

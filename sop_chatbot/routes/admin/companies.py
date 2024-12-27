@@ -1,10 +1,9 @@
 import asyncio
 from typing import Annotated
 
+from config import DEBUG
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
-
-from sop_chatbot.config import DEBUG
 from models.companies import Company, CreateCompanyRequest
 from models.mixins import ActionResponse, PaginatedResponse
 from models.users import User
@@ -14,7 +13,7 @@ from routes.dependencies import (
     DeleteDependency,
     admin_dependency,
 )
-from sop_chatbot.session import db
+from session import db
 
 router = APIRouter(prefix='/companies', tags=['Admin: Companies'])
 companies_dependency = AdminListDependency(Company)

@@ -4,11 +4,10 @@ from bson import ObjectId
 from fastapi import Body, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
 from fastapi.routing import APIRouter
-
 from models.users import User, UserResponse
 from routes.dependencies import session_dependency
 from services.auth import Auth
-from sop_chatbot.session import db
+from session import db
 
 router = APIRouter(tags=['Users'])
 

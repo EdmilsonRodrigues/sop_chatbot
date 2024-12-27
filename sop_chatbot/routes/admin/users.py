@@ -2,7 +2,6 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
-
 from models.mixins import ActionResponse, PaginatedResponse
 from models.users import (
     CreateUserRequest,

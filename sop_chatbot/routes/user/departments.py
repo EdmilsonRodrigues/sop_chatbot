@@ -3,7 +3,6 @@ from typing import Annotated
 from fastapi import Depends
 from fastapi.responses import ORJSONResponse
 from fastapi.routing import APIRouter
-
 from models.departments import Department
 from models.mixins import PaginatedResponse
 from routes.dependencies import ListDependency, ObjectDependency

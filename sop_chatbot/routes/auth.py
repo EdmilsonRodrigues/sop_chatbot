@@ -4,7 +4,6 @@ from fastapi import Body, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
 from fastapi.routing import APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
-
 from models.users import (
     Admin,
     AdminResponse,

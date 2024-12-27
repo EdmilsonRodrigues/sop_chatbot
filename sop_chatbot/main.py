@@ -1,13 +1,15 @@
 import asyncio
+import os
 from contextlib import asynccontextmanager
 
+from config import APP, DEBUG, DESCRIPTION, VERSION
 from fastapi import FastAPI
-from pydantic import BaseModel
-
-from sop_chatbot.config import APP, DEBUG, DESCRIPTION, VERSION
 from migrations.indexes import create_indexes
 from migrations.migrations import run_migrations
+from pydantic import BaseModel
 from routes.api import router as api_router
+
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 tags_info = [
     {'name': 'Version', 'description': 'Version information'},
@@ -62,4 +64,4 @@ def version():
 if __name__ == '__main__':
     import uvicorn
 
-    uvicorn.run(app, host='localhost', port=8000)
+    uvicorn.run(app, host='0.0.0.0', port=8000)
