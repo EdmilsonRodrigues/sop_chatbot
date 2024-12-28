@@ -9,6 +9,7 @@ from sop_chatbot.main import app
 pytest_plugins = [
     'tests.fixtures.user_fixtures',
     'tests.fixtures.company_fixtures',
+    'tests.fixtures.department_fixtures',
 ]
 
 loop = asyncio.new_event_loop()
