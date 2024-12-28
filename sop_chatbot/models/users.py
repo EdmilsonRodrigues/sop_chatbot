@@ -40,7 +40,7 @@ class CreateAdminRequest(CreateUserRequest):
     ]
 
 
-class CreateCommonUserRequest(BaseRequest):
+class CreateCommonUserRequest(CreateUserRequest):
     company: Annotated[str, Field(description='The company of the user')]
     departments: Annotated[
         list[str], Field(description='The department of the user')
@@ -199,8 +199,10 @@ class User(BaseUser, CreateCommonUserRequest):
             {'$sort': {'registration': -1}},
             {'$limit': 1},
         ]
-        result = await session.session.db.users.aggregate(pipeline).to_list(
-            length=1
+        result = (
+            await session.db[cls.table_name()]
+            .aggregate(pipeline)
+            .to_list(length=1)
         )
         highest_registration = result[0]['registration']
         return '.'.join(owner.split('.')[0:2]) + '.' + str(
@@ -208,7 +210,7 @@ class User(BaseUser, CreateCommonUserRequest):
         ).zfill(3), owner
 
     @classmethod
-    async def create(cls, create_request: CreateUserRequest, owner: str):
+    async def create(cls, create_request: CreateCommonUserRequest, owner: str):
         created_at = datetime.now()
         updated_at = datetime.now()
         registration, updated_owner = await cls.gen_registration(owner)

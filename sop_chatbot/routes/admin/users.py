@@ -5,7 +5,7 @@ from fastapi.responses import ORJSONResponse
 
 from ...models.mixins import ActionResponse, PaginatedResponse
 from ...models.users import (
-    CreateUserRequest,
+    CreateCommonUserRequest,
     UpdateUserRequest,
     User,
     UserResponse,
@@ -36,7 +36,7 @@ async def get_users(
 
 @router.post('/', response_model=User, response_class=ORJSONResponse)
 async def create_user(
-    request: CreateUserRequest,
+    request: CreateCommonUserRequest,
     session: Annotated[User, Depends(admin_dependency)],
 ):
     user = await User.create(

@@ -27,6 +27,7 @@ test = [
     "pytest-cov==6.0.0",
     "pytest==8.3.3",
     "pytest-asyncio==0.24.0",
+    "time-machine>=2.16.0",
 ]
 dev = [
     "mypy==1.13.0",

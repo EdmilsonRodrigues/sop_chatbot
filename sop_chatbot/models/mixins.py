@@ -135,10 +135,10 @@ class BaseClass(BaseRequest, ABC):
         registration = CLASS_MAPPING[cls.__name__] + '.'
         owner_part = owner.split('.')[1]
         registration += owner_part + '.'
-        all_companies = await session.db[cls.table_name()].count_documents(
+        all_objects = await session.db[cls.table_name()].count_documents(
             {'owner': owner}
         )
-        registration += str(all_companies + 1).zfill(3)
+        registration += str(all_objects + 1).zfill(3)
         return registration
 
     @classmethod

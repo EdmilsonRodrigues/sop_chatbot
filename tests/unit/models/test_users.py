@@ -1,8 +1,14 @@
 from datetime import datetime
 
 import pytest
+import time_machine
 
-from sop_chatbot.models.users import Admin, User
+from sop_chatbot.models.users import (
+    Admin,
+    CreateAdminRequest,
+    CreateCommonUserRequest,
+    User,
+)
 
 
 def test_admin_table_name():
@@ -167,7 +173,7 @@ def test_user_is_not_manager(user_object):
 
 
 @pytest.mark.asyncio(loop_scope='session')
-async def test_gen_admin_registration(stub_users_count_0):
+async def test_gen_admin_registration(stub_admin_count_0):
     result = ('001.0001.000', '001.0001.000')
 
     assert await Admin.gen_registration('001.0001.000') == result
@@ -177,18 +183,86 @@ async def test_gen_admin_registration(stub_users_count_0):
 async def test_gen_user_registration(stub_users_count_0):
     result = ('001.0001.001', '001.0001.000')
 
-    assert await User.gen_registration() == (result, result)
+    assert await User.gen_registration('001.0001.000') == result
 
 
 @pytest.mark.asyncio(loop_scope='session')
-async def test_gen_admin_registration_10000(stub_users_count_10000):
-    result = '001.10001.000'
+async def test_gen_admin_registration_10000(stub_admin_count_10000):
+    result = ('001.10001.000', '001.10001.000')
 
-    assert await Admin.gen_registration() == (result, result)
+    assert await Admin.gen_registration() == result
 
 
 @pytest.mark.asyncio(loop_scope='session')
 async def test_gen_user_registration_10000(stub_users_count_10000):
-    result = '001.10001.001'
+    result = ('001.10001.10001', '001.10001.000')
 
-    assert await User.gen_registration() == (result, result)
+    assert await User.gen_registration('001.10001.000') == result
+
+
+@pytest.mark.asyncio(loop_scope='session')
+async def test_create_user(user_request, stub_user_creation, time_now):
+    result = User(
+        **{
+            'id': '676ef484daff5f784260b96f',
+            'name': 'Edmilson Monteiro Rodrigues Neto',
+            'password': ''.join(
+                (
+                    'afe1fa4af3b95b86bf07c6d70c86cd',
+                    '54d5b20a670fb59645720e42f18a635525',
+                )
+            ),
+            'role': 'user',
+            'company': '002.0001.000',
+            'departments': ['003.0001.000'],
+            'registration': '001.0001.001',
+            'created_at': '2024-12-27T18:43:19.339384',
+            'updated_at': '2024-12-27T18:43:19.339384',
+            'owner': '001.0001.000',
+        }
+    )
+
+    with time_machine.travel(time_now, tick=False):
+        user = await User.create(
+            CreateCommonUserRequest(**user_request), '001.0001.000'
+        )
+
+    assert user == result
+
+
+@pytest.mark.asyncio(loop_scope='session')
+async def test_create_admin(admin_request, stub_admin_creation, time_now):
+    result = Admin(
+        **{
+            'id': '676ef484daff5f784260b96e',
+            'email': 'planetaedevelopment@gmail.com',
+            'company_name': 'Planetae Development',
+            'company_description': ' '.join(
+                (
+                    'A company focused on developing',
+                    'high quality business automations and webapplications.',
+                )
+            ),
+            'name': 'Edmilson Monteiro Rodrigues Neto',
+            'password': ''.join(
+                (
+                    'afe1fa4af3b95b86bf07c6d70c86cd',
+                    '54d5b20a670fb59645720e42f18a635525',
+                )
+            ),
+            'role': 'admin',
+            'departments': ['003.0001.001'],
+            'registration': '001.0001.000',
+            'company': '002.0001.001',
+            'created_at': '2024-12-27T18:43:19.339384',
+            'updated_at': '2024-12-27T18:43:19.339384',
+            'owner': '001.0001.000',
+        }
+    )
+
+    with time_machine.travel(time_now, tick=False):
+        admin = await Admin.create(
+            CreateAdminRequest(**admin_request), '001.0001.000'
+        )
+
+    assert admin == result

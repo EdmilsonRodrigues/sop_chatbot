@@ -1,4 +1,8 @@
+import collections
+
 import pytest
+
+from sop_chatbot.models.mixins import CLASS_MAPPING
 
 
 @pytest.fixture
@@ -65,12 +69,84 @@ def user_object(user):
     return User(**user, id=user['_id'])
 
 
-def mock_find_user(value: dict | None = None):
-    class MockUserTable:
-        async def find_one(self, *args, **kwargs):
-            return value
+def mock_user_creation(id: str):
+    from bson import ObjectId
 
-    return {'users': MockUserTable()}
+    MockInsertOne = collections.namedtuple('MockInsertOne', ('inserted_id',))
+
+    async def insert_one(*args, **kwargs):
+        return MockInsertOne(ObjectId(id))
+
+    return insert_one
+
+
+@pytest.fixture
+def stub_user_creation(user, stub_users_count_0):
+    from sop_chatbot import session
+
+    MockUserTable = collections.namedtuple(
+        'MockUserTable', ('insert_one', 'aggregate')
+    )
+    original_db = session.db
+    session.db['users'] = MockUserTable(
+        insert_one=mock_user_creation(user['_id']),
+        aggregate=session.db['users'].aggregate,
+    )
+    yield
+    session.db = original_db
+
+
+@pytest.fixture
+def stub_admin_creation(admin, stub_admin_count_0, monkeypatch):
+    from sop_chatbot import session
+
+    MockUserTable = collections.namedtuple(
+        'MockUserTable', ('insert_one', 'count_documents')
+    )
+    original_db = session.db
+    session.db['users'] = MockUserTable(
+        insert_one=mock_user_creation(admin['_id']),
+        count_documents=session.db['users'].count_documents,
+    )
+
+    Company = collections.namedtuple('Company', ('registration', 'owner'))
+    company_registration = '.'.join(
+        (CLASS_MAPPING['Company'], admin['registration'].split('.')[1], '001')
+    )
+
+    async def _company(*args, **kwargs):
+        return Company(company_registration, admin['registration'])
+
+    monkeypatch.setattr(
+        'sop_chatbot.models.companies.Company.create', _company
+    )
+
+    Department = collections.namedtuple('Department', ('registration'))
+    department_registration = '.'.join(
+        (
+            CLASS_MAPPING['Department'],
+            admin['registration'].split('.')[1],
+            '001',
+        )
+    )
+
+    async def _department(*args, **kwargs):
+        return Department(department_registration)
+
+    monkeypatch.setattr(
+        'sop_chatbot.models.departments.Department.create', _department
+    )
+    yield
+    session.db = original_db
+
+
+def mock_find_user(value: dict | None = None):
+    MockUserTable = collections.namedtuple('MockUserTable', ('find_one',))
+
+    async def find_one(*args, **kwargs):
+        return value
+
+    return {'users': MockUserTable(find_one=find_one)}
 
 
 @pytest.fixture
@@ -103,12 +179,50 @@ def stub_find_user_admin(admin):
     session.db = original_db
 
 
-def mock_users_count(value: int = 0):
-    class MockUserTable:
-        async def count_documents(self, *args, **kwargs):
-            return value
+def mock_admin_count(value: int = 0):
+    MockUserTable = collections.namedtuple(
+        'MockUserTable', ('count_documents',)
+    )
 
-    return {'users': MockUserTable()}
+    async def count_documents(*args, **kwargs):
+        return value
+
+    return {'users': MockUserTable(count_documents=count_documents)}
+
+
+@pytest.fixture
+def stub_admin_count_0():
+    from sop_chatbot import session
+
+    original_db = session.db
+    session.db = mock_admin_count(0)
+    yield
+    session.db = original_db
+
+
+@pytest.fixture
+def stub_admin_count_10000():
+    from sop_chatbot import session
+
+    original_db = session.db
+    session.db = mock_admin_count(10000)
+    yield
+    session.db = original_db
+
+
+def mock_users_count(value: int = 0):
+    MockUserTable = collections.namedtuple('MockUserTable', ('aggregate',))
+    MockAggregate = collections.namedtuple('MockAggregate', ('to_list',))
+
+    async def to_list(*args, **kwargs):
+        unique = str(value + 1).zfill(3)
+        return [{'registration': unique}]
+
+    return {
+        'users': MockUserTable(
+            aggregate=lambda *args, **kwargs: MockAggregate(to_list=to_list)
+        )
+    }
 
 
 @pytest.fixture

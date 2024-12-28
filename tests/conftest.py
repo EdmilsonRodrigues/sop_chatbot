@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
@@ -5,6 +7,32 @@ from httpx import ASGITransport, AsyncClient
 from sop_chatbot.main import app
 
 pytest_plugins = ['tests.fixtures.user_fixtures']
+
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+
+
+@pytest.fixture
+def async_loop():
+    return loop
+
+
+@pytest.fixture(autouse=True)
+def setup():
+    from motor.motor_asyncio import AsyncIOMotorClient
+    from pymongo import MongoClient
+
+    import sop_chatbot.session as session
+    from sop_chatbot.config import settings
+
+    def clear_db():
+        db = settings.TEST_MONGO_URI.split('/')[-1]
+        MongoClient(settings.TEST_MONGO_URI).drop_database(db)
+
+    session.db = AsyncIOMotorClient(settings.TEST_MONGO_URI).get_database()
+    clear_db()
+    yield
+    clear_db()
 
 
 @pytest.fixture
@@ -75,3 +103,8 @@ def awaitable_empty_int():
         return 0
 
     return _awaitable_empty_int
+
+
+@pytest.fixture
+def time_now():
+    return '2024-12-27T18:43:19.339384'
