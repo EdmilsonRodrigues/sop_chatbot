@@ -166,3 +166,4 @@ cython_debug/
 */.ruff_cache
 */*/.ruff_cache
 studies.md
+docs/reports

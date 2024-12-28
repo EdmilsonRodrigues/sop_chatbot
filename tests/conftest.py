@@ -1,4 +1,5 @@
 import asyncio
+import collections
 
 import pytest
 from fastapi.testclient import TestClient
@@ -10,6 +11,7 @@ pytest_plugins = [
     'tests.fixtures.user_fixtures',
     'tests.fixtures.company_fixtures',
     'tests.fixtures.department_fixtures',
+    'tests.fixtures.mixins_fixtures',
 ]
 
 loop = asyncio.new_event_loop()
@@ -112,3 +114,6 @@ def awaitable_empty_int():
 @pytest.fixture
 def time_now():
     return '2024-12-27T18:43:19.339384'
+
+
+MockInsertOne = collections.namedtuple('MockInsertOne', ('inserted_id',))

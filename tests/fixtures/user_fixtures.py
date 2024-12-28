@@ -3,6 +3,7 @@ import collections
 import pytest
 
 from sop_chatbot.models.mixins import CLASS_MAPPING
+from tests.conftest import MockInsertOne
 
 
 @pytest.fixture
@@ -69,10 +70,10 @@ def user_object(user):
     return User(**user, id=user['_id'])
 
 
-def mock_user_creation(id: str):
+def mock_user_creation(
+    id: str,
+):
     from bson import ObjectId
-
-    MockInsertOne = collections.namedtuple('MockInsertOne', ('inserted_id',))
 
     async def insert_one(*args, **kwargs):
         return MockInsertOne(ObjectId(id))
@@ -164,6 +165,7 @@ def stub_find_user_user(user):
     from sop_chatbot import session
 
     original_db = session.db
+    user['mocks'] = ['000.0000.000']
     session.db = mock_find_user(user)
     yield
     session.db = original_db

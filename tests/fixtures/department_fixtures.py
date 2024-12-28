@@ -2,6 +2,8 @@ import collections
 
 import pytest
 
+from tests.conftest import MockInsertOne
+
 
 def mock_department_count(value: int = 0):
     MockDepartmentTable = collections.namedtuple(
@@ -66,8 +68,6 @@ def department_object(department):
 
 def mock_department_creation(id: str):
     from bson import ObjectId
-
-    MockInsertOne = collections.namedtuple('MockInsertOne', ('inserted_id',))
 
     async def insert_one(*args, **kwargs):
         return MockInsertOne(ObjectId(id))

@@ -17,7 +17,7 @@ async def session_dependency(
     token: Annotated[str, Depends(oauth_scheme)],
 ) -> User:
     payload = Auth().decode_jwt(token)
-    user = await User.get(payload['user_registration'])
+    user = await User.get(payload['sub'])
     if user is None:
         raise HTTPException(status_code=401, detail='Invalid token')
     return user
@@ -77,7 +77,7 @@ class ListDependency(Dependency, Generic[T]):
         return await self.cls.get_all(
             pagination,
             owner=session_dependency.owner,
-            user_registration=session_dependency.registration,
+            sub=session_dependency.registration,
         )
 
 

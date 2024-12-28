@@ -11,7 +11,7 @@ from ..config import settings
 oauth_scheme = OAuth2PasswordBearer(tokenUrl='/api/auth/login')
 
 
-class AuthResponse(BaseModel):
+class Token(BaseModel):
     access_token: str
     token_type: str = 'bearer'
 
@@ -25,13 +25,13 @@ class Auth:
         Generate a JSON Web Token (JWT) for the user.
 
         :param user_registration: The user's registration.
-        :type user_id: str
+        :type user_registration: str
 
         :return: The JWT.
         :rtype: str
         """
         payload = {
-            'user_registration': user_registration,
+            'sub': user_registration,
             'exp': datetime.now(UTC) + timedelta(days=7),
             'secret': settings.SECRET_KEY,
         }

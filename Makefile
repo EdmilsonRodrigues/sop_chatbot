@@ -5,9 +5,12 @@ lint:
 	ruff format
 	mypy --html-report docs/reports -m sop_chatbot
 
-.PHONY: test
+.PHONY: test, test-report
 test:
+	pytest -vvvx tests --cov=sop_chatbot --cov-report=html --durations=5
+test-report:
 	pytest -vvvx tests --cov=sop_chatbot --cov-report=html --durations=5 | tee docs/reports/test_results.txt
+
 
 .PHONY: debug-tests
 debug-tests:

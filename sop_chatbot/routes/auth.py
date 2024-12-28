@@ -12,12 +12,12 @@ from ..models.users import (
     User,
     UserRoles,
 )
-from ..services.auth import Auth, AuthResponse
+from ..services.auth import Auth, Token
 
 router = APIRouter(prefix='/auth', tags=['Auth'])
 
 
-@router.post('/login', response_model=AuthResponse)
+@router.post('/login', response_model=Token)
 async def login(login: Annotated[OAuth2PasswordRequestForm, Depends()]):
     """
     Login a user to the system. Required the user's registration and password.
@@ -38,7 +38,7 @@ async def login(login: Annotated[OAuth2PasswordRequestForm, Depends()]):
             headers={'WWW-Authenticate': 'Bearer'},
         )
     jwt = Auth.generate_jwt(user.registration)
-    return AuthResponse(access_token=jwt)
+    return Token(access_token=jwt)
 
 
 @router.post(
@@ -84,4 +84,4 @@ async def admin_login(
             headers={'WWW-Authenticate': 'Bearer'},
         )
     jwt = Auth.generate_jwt(user.registration)
-    return AuthResponse(access_token=jwt)
+    return Token(access_token=jwt)

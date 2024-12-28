@@ -37,14 +37,18 @@ class BaseRequest(BaseModel, ABC):
     def mongo(self):
         dump = self.model_dump()
         dump.pop('id', None)
-        for key, value in dump.items():
-            if isinstance(value, ObjectId):
-                dump[key] = str(value)
-            elif isinstance(value, BaseClass):
-                dump[key] = value.mongo()
-            elif isinstance(value, Enum):
-                dump[key] = value.value
-        return dump
+
+        def mongofy(dump: dict):
+            for key, value in dump.items():
+                if isinstance(value, dict):
+                    dump[key] = mongofy(value)
+                elif isinstance(value, Enum):
+                    dump[key] = value.value
+                else:
+                    dump[key] = value
+            return dump
+
+        return mongofy(dump)
 
 
 class BaseClass(BaseRequest, ABC):
@@ -55,7 +59,10 @@ class BaseClass(BaseRequest, ABC):
         ),
     ]
     registration: Annotated[
-        str, Field(description='The registration string of the object')
+        str,
+        Field(
+            description='The registration string of the object', min_length=12
+        ),
     ]
     created_at: Annotated[
         datetime, Field(description='The date and time the object was created')
@@ -64,8 +71,12 @@ class BaseClass(BaseRequest, ABC):
         datetime,
         Field(description='The date and time the object was last updated'),
     ]
-    owner: Annotated[str, Field(description='The owner of the account')]
-    company: Annotated[str, Field(description='The company of the user')]
+    owner: Annotated[
+        str, Field(description='The owner of the account', min_length=12)
+    ]
+    company: Annotated[
+        str, Field(description='The company of the user', min_length=12)
+    ]
 
     @classmethod
     def table_name(cls):
@@ -75,21 +86,24 @@ class BaseClass(BaseRequest, ABC):
     def __get_json_value(cls, value):
         if isinstance(value, Enum):
             return value.value
-        elif isinstance(value, BaseClass):
-            return value.json()
         elif isinstance(value, datetime):
             return value.isoformat()
-        elif isinstance(value, ObjectId):
-            return str(value)
         elif isinstance(value, list):
             return [cls.__get_json_value(i) for i in value]
         return value
 
     def json(self):
         dump = self.model_dump()
-        for key, value in dump.items():
-            dump[key] = self.__get_json_value(value)
-        return dump
+
+        def jsonify(dump: dict):
+            for key, value in dump.items():
+                if isinstance(value, dict):
+                    dump[key] = jsonify(value)
+                else:
+                    dump[key] = self.__get_json_value(value)
+            return dump
+
+        return jsonify(dump)
 
     async def update(self, data: dict):
         self.updated_at = datetime.now()
@@ -171,7 +185,7 @@ class BaseClass(BaseRequest, ABC):
     ) -> 'PaginatedResponse':
         find = {'owner': owner}
         if user_registration is not None:
-            user = await session.db.users.find_one(
+            user = await session.db['users'].find_one(
                 {'registration': user_registration}
             )
             if user is None:
