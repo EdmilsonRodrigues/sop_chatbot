@@ -6,7 +6,10 @@ from httpx import ASGITransport, AsyncClient
 
 from sop_chatbot.main import app
 
-pytest_plugins = ['tests.fixtures.user_fixtures']
+pytest_plugins = [
+    'tests.fixtures.user_fixtures',
+    'tests.fixtures.company_fixtures',
+]
 
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)

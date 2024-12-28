@@ -32,7 +32,7 @@ tags_info = [
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI):  # pragma: no cover
     await asyncio.gather(create_indexes(), run_migrations())
     yield
     from . import session
@@ -62,7 +62,7 @@ def version():
     return {'version': settings.VERSION}
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     # Run this module with uvicorn sop_chatbot.main:app --loop uvloop
     import uvicorn
 

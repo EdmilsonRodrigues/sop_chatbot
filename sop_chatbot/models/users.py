@@ -54,14 +54,16 @@ class BaseUser(BaseClass, CreateUserRequest, ABC):
 
     @classmethod
     @abstractmethod
-    async def gen_registration(cls, owner: str | None) -> tuple[str, str]:
+    async def gen_registration(
+        cls, owner: str | None
+    ) -> tuple[str, str]:  # pragma: no cover  # noqa: E501
         pass
 
     @classmethod
     @abstractmethod
     async def create(
         cls, create_request: CreateUserRequest, owner: str | None = None
-    ):
+    ):  # pragma: no cover
         created_at = datetime.now()
         updated_at = datetime.now()
         registration, updated_owner = await cls.gen_registration(owner)
@@ -95,8 +97,6 @@ class BaseUser(BaseClass, CreateUserRequest, ABC):
             {'registration': registration}
         )
         if obj:
-            if not obj.get('company'):
-                obj['company'] = ''
             return cls(
                 id=str(obj['_id']),
                 **obj,
@@ -138,9 +138,6 @@ class UserResponse(BaseClass):
     role: Annotated[UserRoles, Field(description='The role of the user')] = (
         UserRoles.USER
     )
-
-    def gen_registration(cls, owner: EmailStr, **kwargs):
-        return super().gen_registration(owner, **kwargs)
 
 
 class AdminResponse(UserResponse):
