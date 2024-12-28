@@ -33,7 +33,6 @@ class Auth:
         payload = {
             'sub': user_registration,
             'exp': datetime.now(UTC) + timedelta(days=7),
-            'secret': settings.SECRET_KEY,
         }
         return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
 

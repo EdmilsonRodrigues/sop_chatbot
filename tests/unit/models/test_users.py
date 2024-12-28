@@ -9,6 +9,7 @@ from sop_chatbot.models.users import (
     CreateCommonUserRequest,
     User,
 )
+from sop_chatbot.services.auth import Auth
 
 
 def test_admin_table_name():
@@ -150,8 +151,8 @@ def test_admin_mongo(admin_object):
 
 
 def test_verify_password(user_object):
-    user_object.password = (
-        'afe1fa4af3b95b86bf07c6d70c86cd54d5b20a670fb59645720e42f18a635525'
+    user_object.password = Auth.encrypt_password(
+        'This is not my real password'
     )
     assert user_object.verify_password('This is not my real password')
 
