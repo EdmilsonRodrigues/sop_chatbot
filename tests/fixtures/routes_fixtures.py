@@ -85,7 +85,7 @@ class DepartmentFactory(factory.Factory):
 
 
 @pytest.fixture
-def fill_20_users():
+async def fill_20_users():
     users = UserFactory.create_batch(20)
     db_users = []
     for user in users:
@@ -93,7 +93,7 @@ def fill_20_users():
         user['_id'] = ObjectId(user.pop('id'))
         user['password'] = Auth.encrypt_password(user['password'])
         db_users.append(user)
-    session.db.users.insert_many(db_users)
+    await session.db.users.insert_many(db_users)
     return users
 
 
