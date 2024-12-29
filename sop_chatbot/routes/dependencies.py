@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Annotated, Any, Generic
 
 from cachetools import TTLCache, cached
-from fastapi import Depends, HTTPException, Path
+from fastapi import Depends, HTTPException, Path, Query
 
 from ..models.mixins import (
     ActionResponse,
@@ -108,16 +108,16 @@ class AdminListDependency(ListDependency[T]):
         self,
         session_dependency: Annotated[User, Depends(admin_dependency)],
         skip: Annotated[
-            int, Path(description='The number of objects to skip.')
+            int, Query(description='The number of objects to skip.')
         ] = 0,
         limit: Annotated[
-            int, Path(description='The number of objects to return.')
+            int, Query(description='The number of objects to return.')
         ] = 10,
         query: Annotated[
-            str, Path(description='The query to filter the objects.')
+            str, Query(description='The query to filter the objects.')
         ] = None,
         value: Annotated[
-            Any, Path(description='The value to filter the objects.')
+            Any, Query(description='The value to filter the objects.')
         ] = None,
     ) -> PaginatedResponse[T]:
         pagination = PaginationRequest(
@@ -193,15 +193,12 @@ class AdminObjectDependency(ObjectDependency[T]):
             ),
         ],
     ) -> T:
-        obj = await self.cls.get(registration)
+        obj = await self.cls.get(registration, owner=session.registration)
 
         if obj is None:
             raise HTTPException(
                 status_code=404, detail=f'{self.cls.__name__} does not exist'
             )
-
-        if obj.owner != session.registration:
-            raise HTTPException(status_code=403, detail='Unauthorized')
 
         return obj
 

@@ -1,19 +1,18 @@
-import asyncio
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.responses import ORJSONResponse
 
-from ... import session
-from ...config import settings
-from ...models.companies import Company, CreateCompanyRequest
-from ...models.mixins import ActionResponse, PaginatedResponse
-from ...models.users import User
+from ...models.companies import (
+    Company,
+    CreateCompanyRequest,
+    UpdateCompanyRequest,
+)
+from ...models.mixins import PaginatedResponse
 from ..dependencies import (
     AdminListDependency,
     AdminObjectDependency,
     DeleteDependency,
-    admin_dependency,
 )
 
 router = APIRouter(prefix='/companies', tags=['Admin: Companies'])
@@ -33,23 +32,6 @@ async def get_companies(
     ],
 ):
     return companies.json()
-
-
-@router.post('/', response_model=Company, response_class=ORJSONResponse)
-async def create_company(
-    request: CreateCompanyRequest,
-    session: Annotated[User, Depends(admin_dependency)],
-):
-    if session.company:
-        raise HTTPException(
-            status_code=403, detail='Users can only have one company'
-        )
-    company = await Company.create(
-        create_request=request,
-        owner=session.registration,
-    )
-    await session.update({'company': company.registration})
-    return company.json()
 
 
 @router.get(
@@ -72,20 +54,12 @@ async def update_company(
     return company.json()
 
 
-@router.delete(
-    '/{registration}',
-    include_in_schema=False,
-    response_class=ORJSONResponse,
-    response_model=ActionResponse,
+@router.patch(
+    '/{registration}', response_model=Company, response_class=ORJSONResponse
 )
-async def delete_company(
-    company: Annotated[Company, Depends(delete_dependency)],
+async def partial_update_company(
+    request: UpdateCompanyRequest,
+    company: Annotated[Company, Depends(company_dependency)],
 ):
-    if not settings.DEBUG:
-        raise HTTPException(status_code=403, detail='Forbidden')
-    deleted, _, _ = await asyncio.gather(
-        company.delete(),
-        session.db.users.delete_many({'company': company.registration}),
-        session.db.departments.delete_many({'company': company.registration}),
-    )
-    return deleted.model_dump()
+    company = await company.update(request.model_dump(exclude_unset=True))
+    return company.json()

@@ -14,6 +14,15 @@ class CreateCompanyRequest(BaseRequest):
     ]
 
 
+class UpdateCompanyRequest(BaseRequest):
+    name: Annotated[
+        str | None, Field(description='The name of the company')
+    ] = None
+    description: Annotated[
+        str | None, Field(description='The description of the company')
+    ] = None
+
+
 class Company(BaseClass, CreateCompanyRequest):
     @classmethod
     def table_name(cls):

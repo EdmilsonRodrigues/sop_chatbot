@@ -153,10 +153,11 @@ class BaseClass(BaseRequest, ABC):
         return registration
 
     @classmethod
-    async def get(cls, registration: str):
-        obj = await session.db[cls.table_name()].find_one(
-            {'registration': registration}
-        )
+    async def get(cls, registration: str, owner: str | None = None):
+        find = {'registration': registration}
+        if owner is not None:
+            find['owner'] = owner
+        obj = await session.db[cls.table_name()].find_one(find)
         if obj:
             return cls(
                 id=str(obj['_id']),
@@ -196,16 +197,13 @@ class BaseClass(BaseRequest, ABC):
             regex = {'$regex': pagination_request.value, '$options': 'i'}
             find.update(
                 {
-                    '$or': [
-                        {'$text': {'$search': pagination_request.value}},
-                        {pagination_request.query: regex},
-                    ]
+                    pagination_request.query: regex,
                 }
             )
         objs = (
             session.db[cls.table_name()]
             .find(find)
-            .skip(pagination_request.skip)
+            .skip(pagination_request.skip * pagination_request.limit)
             .limit(pagination_request.limit)
         )
         total = await session.db[cls.table_name()].count_documents(find)

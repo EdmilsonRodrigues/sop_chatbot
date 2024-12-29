@@ -95,18 +95,6 @@ class BaseUser(BaseClass, CreateUserRequest, ABC):
         )
         return self
 
-    @classmethod
-    async def get(cls, registration: str):
-        obj = await session.db[cls.table_name()].find_one(
-            {'registration': registration}
-        )
-        if obj:
-            return cls(
-                id=str(obj['_id']),
-                **obj,
-            )
-        return None
-
     def json(self) -> dict:
         dump = super().json()
         dump.pop('password', None)

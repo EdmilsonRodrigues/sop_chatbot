@@ -356,7 +356,8 @@ async def test_fail_call_admin_object_dependency_unauthorized(
             )
 
             async def find_one(*args, **kwargs):
-                return admin
+                if args[0].get('owner') == admin['registration']:
+                    return admin
 
             return MockUserTable(find_one=find_one)
 
@@ -370,7 +371,7 @@ async def test_fail_call_admin_object_dependency_unauthorized(
             await AdminObjectDependency(Company)(
                 await admin_dependency(token), '002.0001.001'
             )
-            assert e.status_code == 403
+            assert e.status_code == 404
 
 
 @pytest.mark.asyncio
