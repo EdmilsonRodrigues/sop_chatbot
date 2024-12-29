@@ -87,3 +87,37 @@ def stub_company_creation(stub_companies_count_0):
     )
     yield
     session.db = original_db
+
+
+@pytest.fixture
+def stub_company_find_none():
+    from sop_chatbot import session
+
+    MockCompanyTable = collections.namedtuple(
+        'MockCompanyTable', ('find_one',)
+    )
+
+    async def find_one(*args, **kwargs):
+        return None
+
+    original_db = session.db
+    session.db['companies'] = MockCompanyTable(find_one=find_one)
+    yield
+    session.db = original_db
+
+
+@pytest.fixture
+def stub_company_find(company):
+    from sop_chatbot import session
+
+    MockCompanyTable = collections.namedtuple(
+        'MockCompanyTable', ('find_one',)
+    )
+
+    async def find_one(*args, **kwargs):
+        return company
+
+    original_db = session.db
+    session.db['companies'] = MockCompanyTable(find_one=find_one)
+    yield
+    session.db = original_db

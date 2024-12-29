@@ -74,9 +74,6 @@ class BaseClass(BaseRequest, ABC):
     owner: Annotated[
         str, Field(description='The owner of the account', min_length=12)
     ]
-    company: Annotated[
-        str, Field(description='The company of the user', min_length=12)
-    ]
 
     @classmethod
     def table_name(cls):

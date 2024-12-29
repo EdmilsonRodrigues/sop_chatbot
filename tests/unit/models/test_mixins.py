@@ -21,7 +21,6 @@ def test_mock_object_to_mongo(mock_object):
         'created_at': datetime(2024, 12, 27, 18, 43, 19, 339384),
         'updated_at': datetime(2024, 12, 27, 18, 43, 19, 339384),
         'owner': '001.0000.000',
-        'company': '002.0000.000',
     }
     assert mock_object.mongo() == result
 
@@ -32,7 +31,6 @@ def test_complex_mock_object_to_mongo(complex_mock_object):
         'created_at': datetime(2024, 12, 27, 18, 43, 19, 339384),
         'updated_at': datetime(2024, 12, 27, 18, 43, 19, 339384),
         'owner': '001.0000.000',
-        'company': '002.0000.000',
         'workspace_id': '676ff4ea01892d16d07c41b4',
         'composed_class': {
             'id': '676ff4ea01892d16d07c41b4',
@@ -40,7 +38,6 @@ def test_complex_mock_object_to_mongo(complex_mock_object):
             'created_at': datetime(2024, 12, 27, 18, 43, 19, 339384),
             'updated_at': datetime(2024, 12, 27, 18, 43, 19, 339384),
             'owner': '001.0000.000',
-            'company': '002.0000.000',
         },
         'composed_enum': 'mock',
         'composed_array': [1, 2, 3],
@@ -55,7 +52,6 @@ def test_mock_object_to_json(mock_object):
         'created_at': '2024-12-27T18:43:19.339384',
         'updated_at': '2024-12-27T18:43:19.339384',
         'owner': '001.0000.000',
-        'company': '002.0000.000',
     }
     assert mock_object.json() == result
 
@@ -67,7 +63,6 @@ def test_complex_mock_object_to_json(complex_mock_object):
         'created_at': '2024-12-27T18:43:19.339384',
         'updated_at': '2024-12-27T18:43:19.339384',
         'owner': '001.0000.000',
-        'company': '002.0000.000',
         'workspace_id': '676ff4ea01892d16d07c41b4',
         'composed_class': {
             'id': '676ff4ea01892d16d07c41b4',
@@ -75,7 +70,6 @@ def test_complex_mock_object_to_json(complex_mock_object):
             'created_at': '2024-12-27T18:43:19.339384',
             'updated_at': '2024-12-27T18:43:19.339384',
             'owner': '001.0000.000',
-            'company': '002.0000.000',
         },
         'composed_enum': 'mock',
         'composed_array': [1, 2, 3],
@@ -87,7 +81,6 @@ def test_complex_mock_object_to_json(complex_mock_object):
 async def test_update_mock_object(mock_object, stub_update_mock_object):
     data = {
         'owner': '002.0000.000',
-        'company': '003.0000.000',
     }
     result = {
         'id': '676ff4ea01892d16d07c41b4',
@@ -95,7 +88,6 @@ async def test_update_mock_object(mock_object, stub_update_mock_object):
         'created_at': datetime(2024, 12, 27, 18, 43, 19, 339384),
         'updated_at': datetime(2024, 12, 27, 18, 45, 10, 0),
         'owner': '002.0000.000',
-        'company': '003.0000.000',
     }
 
     with time_machine.travel(datetime(2024, 12, 27, 18, 45, 10), tick=False):
@@ -114,10 +106,9 @@ async def test_create_mock_object(
         'created_at': datetime(2024, 12, 27, 18, 43, 19, 339384),
         'updated_at': datetime(2024, 12, 27, 18, 43, 19, 339384),
         'owner': '001.0000.000',
-        'company': '002.0000.000',
     }
 
-    request = MockRequest(company='002.0000.000')
+    request = MockRequest()
 
     with time_machine.travel(
         datetime(2024, 12, 27, 18, 43, 19, 339384), tick=False
@@ -140,7 +131,6 @@ async def test_get_mock(MockClass, stub_find_one_mock_object):
         created_at=datetime(2024, 12, 27, 18, 43, 19, 339384),
         updated_at=datetime(2024, 12, 27, 18, 43, 19, 339384),
         owner='001.0000.000',
-        company='002.0000.000',
     )
     assert await MockClass.get('000.0000.000') == result
 
@@ -153,7 +143,6 @@ async def test_get_mock_by_field(MockClass, stub_find_one_mock_object):
         created_at=datetime(2024, 12, 27, 18, 43, 19, 339384),
         updated_at=datetime(2024, 12, 27, 18, 43, 19, 339384),
         owner='001.0000.000',
-        company='002.0000.000',
     )
     assert (
         await MockClass.get_by_field('id', '676ff4ea01892d16d07c41b4')
@@ -189,7 +178,6 @@ async def test_get_all_mocks_when_user_registration_exists_using_queries(
                     'created_at': '2024-12-27T18:43:19.339384',
                     'updated_at': '2024-12-27T18:43:19.339384',
                     'owner': '001.0000.000',
-                    'company': '002.0000.000',
                 }
             )
         ],

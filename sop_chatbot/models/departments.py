@@ -13,6 +13,10 @@ class CreateDepartmentRequest(BaseRequest):
 
 
 class Department(BaseClass, CreateDepartmentRequest):
+    company: Annotated[
+        str, Field(description='The company of the user', min_length=12)
+    ]
+
     @classmethod
     def create(
         cls, create_request: BaseRequest, owner: str, company: str, **kwargrs

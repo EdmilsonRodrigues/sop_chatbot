@@ -2,7 +2,6 @@ from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 
 import jwt
-from cachetools import TTLCache, cached
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 
@@ -17,8 +16,6 @@ class Token(BaseModel):
 
 
 class Auth:
-    cache = TTLCache(maxsize=100, ttl=1800)
-
     @staticmethod
     def generate_jwt(user_registration: str) -> str:
         """
@@ -37,7 +34,6 @@ class Auth:
         return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
 
     @staticmethod
-    @cached(cache)
     def decode_jwt(token: str) -> dict | None:
         """
         Decode a JSON Web Token (JWT).

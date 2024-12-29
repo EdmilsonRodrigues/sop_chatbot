@@ -52,10 +52,11 @@ def department(time_now):
         '_id': '676ef484daff5f784260b96f',
         'name': 'Development Department',
         'description': 'A department focused on development',
-        'registration': '002.0001.001',
+        'registration': '003.0001.001',
         'owner': '001.0001.000',
         'created_at': time_now,
         'updated_at': time_now,
+        'company': '002.0001.001',
     }
 
 
@@ -86,6 +87,28 @@ def stub_department_creation(stub_departments_count_0):
     session.db['departments'] = MockDepartmentTable(
         insert_one=mock_department_creation('676ef484daff5f784260b96f'),
         count_documents=session.db['departments'].count_documents,
+    )
+    yield
+    session.db = original_db
+
+
+@pytest.fixture
+def stub_department_find(department):
+    from sop_chatbot import session
+
+    MockDepartmentTable = collections.namedtuple(
+        'MockDepartmentTable', ('find_one', 'delete_one')
+    )
+
+    async def find_one(*args, **kwargs):
+        return department
+
+    async def delete_one(*args, **kwargs):
+        return None
+
+    original_db = session.db
+    session.db['departments'] = MockDepartmentTable(
+        find_one=find_one, delete_one=delete_one
     )
     yield
     session.db = original_db

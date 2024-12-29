@@ -13,7 +13,7 @@ from tests.conftest import MockInsertOne
 @pytest.fixture
 def MockRequest():
     class Request(BaseRequest):
-        company: str
+        pass
 
     return Request
 

@@ -1,22 +1,27 @@
-.PHONY: lint
+.PHONY: format lint type-check
+format:
+	ruff format
 lint:
-	ruff format
 	ruff check --fix
-	ruff format
-	mypy --html-report docs/reports -m sop_chatbot
+	ruff check --diff
+type-check:
+	mypy --html-report docs/reports -m sop_chatbot --strict
 
-.PHONY: test, test-report
+.PHONY: test test-report debug-tests
 test:
 	pytest -vvvx tests --cov=sop_chatbot --cov-report=html --durations=5
 test-report:
-	pytest -vvvx tests --cov=sop_chatbot --cov-report=html --durations=5 | tee docs/reports/test_results.txt
-
-
-.PHONY: debug-tests
+	pytest -vvv tests --cov=sop_chatbot --durations=5 | tee docs/reports/test_results.txt
+	coverage html
 debug-tests:
 	pytest -vvvx tests --cov=sop_chatbot --cov-report=html --durations=5 --pdb
 
+.PHONY: run production-run
+run:
+	uvicorn sop_chatbot.main:app --host=0.0.0.0 --port=8000 --reload --loop=uvloop
+production-run:
+	uvicorn sop_chatbot.main:app --host=0.0.0.0 --port=8000 --loop=uvloop --workers=4
 
-
-.PHONY: pre-commit
-pre-commit: lint test
+.PHONY: dev-tests pre-commit
+dev-tests: format lint format type-check test
+pre-commit: format lint format type-check test-report 

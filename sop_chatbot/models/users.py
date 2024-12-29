@@ -48,6 +48,10 @@ class CreateCommonUserRequest(CreateUserRequest):
 
 
 class BaseUser(BaseClass, CreateUserRequest, ABC):
+    company: Annotated[
+        str, Field(description='The company of the user', min_length=12)
+    ]
+
     @classmethod
     def table_name(cls):
         return 'users'

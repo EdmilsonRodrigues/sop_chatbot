@@ -13,15 +13,13 @@ def test_decode_jwt(token, time_now):
     result = {
         'sub': '001.0001.000',
         'exp': round(
-            (
-                datetime.fromisoformat('2024-12-27T18:43:19.339384')
-                + timedelta(days=7)
-            ).timestamp(),
+            (datetime.fromisoformat(time_now) + timedelta(days=7)).timestamp(),
             0,
         ),
     }
 
-    payload = Auth.decode_jwt(token)
+    with time_machine.travel(time_now, tick=False):
+        payload = Auth.decode_jwt(token)
 
     assert payload == result
 

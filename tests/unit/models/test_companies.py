@@ -29,7 +29,6 @@ async def test_create_company(company_request, stub_company_creation):
             'owner': '001.0001.000',
             'created_at': '2024-12-27T18:43:19.339384',
             'updated_at': '2024-12-27T18:43:19.339384',
-            'company': '002.0001.001',
         }
     )
 

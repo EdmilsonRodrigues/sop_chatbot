@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Annotated, Any, Generic
 
+from cachetools import TTLCache, cached
 from fastapi import Depends, HTTPException, Path
 
 from ..models.mixins import (
@@ -16,7 +17,15 @@ from ..services.auth import Auth, oauth_scheme
 async def session_dependency(
     token: Annotated[str, Depends(oauth_scheme)],
 ) -> User:
-    payload = Auth().decode_jwt(token)
+    @cached(TTLCache(maxsize=1024, ttl=1800))
+    def get_payload(token):
+        return Auth.decode_jwt(token)
+
+    payload = get_payload(token)
+    if payload is None:
+        raise HTTPException(status_code=401, detail='Invalid token')
+    if 'sub' not in payload:
+        raise HTTPException(status_code=401, detail='Invalid token')
     user = await User.get(payload['sub'])
     if user is None:
         raise HTTPException(status_code=401, detail='Invalid token')
@@ -39,11 +48,11 @@ async def manager_dependency(token: Annotated[str, Depends(oauth_scheme)]):
 
 class Dependency(ABC):
     @abstractmethod
-    def __init__(self) -> None:
+    def __init__(self) -> None:  # pragma: no cover
         super().__init__()
 
     @abstractmethod
-    def __call__(self, *args: Any, **kwds: Any) -> Any:
+    def __call__(self, *args: Any, **kwds: Any) -> Any:  # pragma: no cover
         pass
 
 
@@ -142,12 +151,7 @@ class ObjectDependency(Dependency, Generic[T]):
                 status_code=404, detail=f'{self.cls.__name__} does not exist'
             )
 
-        users: list[str] = getattr(obj, 'users', None)
         authorized = False
-
-        if users is not None:
-            if session.registration in users:
-                authorized = True
 
         if self.foreign_key:
             if getattr(obj, self.foreign_key, None) == session.registration:
@@ -156,11 +160,7 @@ class ObjectDependency(Dependency, Generic[T]):
                 authorized = True
 
         if self.relational_list:
-            if session.registration in getattr(obj, self.relational_list, []):
-                authorized = True
-            elif obj.registration in getattr(
-                session, self.relational_list, []
-            ):
+            if obj.registration in getattr(session, self.relational_list, []):
                 authorized = True
 
         if not authorized:

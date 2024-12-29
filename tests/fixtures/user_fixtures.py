@@ -28,17 +28,17 @@ def user_request():
         'name': 'Edmilson Monteiro Rodrigues Neto',
         'password': 'This is not my real password',
         'role': 'user',
-        'company': '002.0001.000',
-        'departments': ['003.0001.000'],
+        'company': '002.0001.001',
+        'departments': ['003.0001.001'],
     }
 
 
 @pytest.fixture
 def admin(admin_request):
     admin_request['role'] = 'admin'
-    admin_request['departments'] = ['003.0001.000']
+    admin_request['departments'] = ['003.0001.001']
     admin_request['registration'] = '001.0001.000'
-    admin_request['company'] = '002.0001.000'
+    admin_request['company'] = '002.0001.001'
     admin_request['_id'] = '676ef484daff5f784260b96e'
     admin_request['created_at'] = '2024-12-27T18:43:19.339384'
     admin_request['updated_at'] = '2024-12-27T18:43:19.339384'
@@ -243,5 +243,39 @@ def stub_users_count_10000():
 
     original_db = session.db
     session.db = mock_users_count(10000)
+    yield
+    session.db = original_db
+
+
+@pytest.fixture
+def stub_find_all_users(user):
+    from sop_chatbot import session
+
+    Limit = collections.namedtuple('Limit', ('limit',))
+
+    async def limit(*args, **kwargs):
+        yield user
+
+    Skip = collections.namedtuple('Skip', ('skip',))
+
+    def skip(*args, **kwargs):
+        return Limit(limit=limit)
+
+    def find(*args, **kwargs):
+        return Skip(skip=skip)
+
+    async def _count_documents(*args, **kwargs):
+        return 1
+
+    MockUserTable = collections.namedtuple(
+        'MockUserTable', ('find', 'count_documents', 'find_one')
+    )
+    stub = MockUserTable(
+        find=find,
+        count_documents=_count_documents,
+        find_one=session.db['users'].find_one,
+    )
+    original_db = session.db
+    session.db = {'users': stub}
     yield
     session.db = original_db
