@@ -81,9 +81,12 @@ async def test_get_companies_by_name_query(
     async_client, admin_headers, fill_20_companies
 ):
     companies = await fill_20_companies
+    results = [
+        company for company in companies if companies[0].name in company.name
+    ]
     result = PaginatedResponse(
-        pagination=Pagination(total=1),
-        results=[companies[0]],
+        pagination=Pagination(total=len(results)),
+        results=results,
     )
     headers = await admin_headers
     response = await async_client.get(

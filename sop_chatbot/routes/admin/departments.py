@@ -5,7 +5,11 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import ORJSONResponse
 
 from ... import session
-from ...models.departments import CreateDepartmentRequest, Department
+from ...models.departments import (
+    CreateDepartmentRequest,
+    Department,
+    UpdateDepartmentRequest,
+)
 from ...models.mixins import ActionResponse, PaginatedResponse
 from ...models.users import User
 from ..dependencies import (
@@ -69,13 +73,26 @@ async def update_department(
     return department.json()
 
 
+@router.patch(
+    '/{registration}', response_model=Department, response_class=ORJSONResponse
+)
+async def partial_update_department(
+    request: UpdateDepartmentRequest,
+    department: Annotated[Department, Depends(department_dependency)],
+):
+    department = await department.update(
+        request.model_dump(exclude_unset=True)
+    )
+    return department.json()
+
+
 @router.delete(
     '/{registration}',
     response_class=ORJSONResponse,
     response_model=ActionResponse,
 )
 async def delete_department(
-    department: Annotated[Department, Depends(delete_dependency)],
+    department: Annotated[Department, Depends(department_dependency)],
 ):
     deleted, _ = await asyncio.gather(
         department.delete(),

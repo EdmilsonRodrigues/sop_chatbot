@@ -12,6 +12,15 @@ class CreateDepartmentRequest(BaseRequest):
     ]
 
 
+class UpdateDepartmentRequest(BaseRequest):
+    name: Annotated[
+        str | None, Field(description='The name of the company')
+    ] = None
+    description: Annotated[
+        str | None, Field(description='The description of the company')
+    ] = None
+
+
 class Department(BaseClass, CreateDepartmentRequest):
     company: Annotated[
         str, Field(description='The company of the user', min_length=12)

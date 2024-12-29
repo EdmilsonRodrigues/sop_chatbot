@@ -72,7 +72,7 @@ class DepartmentFactory(factory.Factory):
     class Meta:
         model = Department
 
-    id = str(ObjectId())
+    id = factory.Sequence(lambda n: str(ObjectId()))
     name = factory.Sequence(lambda n: f'test{n}')
     description = fake.text()
     registration = factory.Sequence(
@@ -168,3 +168,24 @@ async def fill_20_companies():
         db_companies.append(company)
     await session.db.companies.insert_many(db_companies)
     return companies
+
+
+@pytest.fixture
+async def fill_department():
+    department = DepartmentFactory()
+    db_department = department.model_dump()
+    db_department['_id'] = ObjectId(db_department.pop('id'))
+    await session.db.departments.insert_one(db_department)
+    return department
+
+
+@pytest.fixture
+async def fill_20_departments():
+    departments = DepartmentFactory.create_batch(20)
+    db_departments = []
+    for department in departments:
+        department = department.model_dump()
+        department['_id'] = ObjectId(department.pop('id'))
+        db_departments.append(department)
+    await session.db.departments.insert_many(db_departments)
+    return departments
