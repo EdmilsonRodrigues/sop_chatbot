@@ -13,6 +13,7 @@ pytest_plugins = [
     'tests.fixtures.department_fixtures',
     'tests.fixtures.mixins_fixtures',
     'tests.fixtures.auth_fixtures',
+    'tests.fixtures.routes_fixtures',
 ]
 
 loop = asyncio.new_event_loop()

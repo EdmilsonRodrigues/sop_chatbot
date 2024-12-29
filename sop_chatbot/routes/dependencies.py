@@ -32,6 +32,9 @@ async def session_dependency(
     return user
 
 
+UserSession = Annotated[User, Depends(session_dependency)]
+
+
 async def admin_dependency(token: Annotated[str, Depends(oauth_scheme)]):
     session = await session_dependency(token)
     if session.is_admin:
@@ -39,11 +42,17 @@ async def admin_dependency(token: Annotated[str, Depends(oauth_scheme)]):
     raise HTTPException(status_code=403, detail='Unauthorized')
 
 
+AdminSession = Annotated[User, Depends(admin_dependency)]
+
+
 async def manager_dependency(token: Annotated[str, Depends(oauth_scheme)]):
     session = await session_dependency(token)
     if session.is_manager:
         return session
     raise HTTPException(status_code=403, detail='Unauthorized')
+
+
+ManagerSession = Annotated[User, Depends(manager_dependency)]
 
 
 class Dependency(ABC):

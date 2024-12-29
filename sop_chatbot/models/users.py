@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Annotated
 
-from pydantic import EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field
 
 from .. import session
 from ..models.companies import Company, CreateCompanyRequest
@@ -129,7 +129,7 @@ class BaseUser(BaseClass, CreateUserRequest, ABC):
         return self.role == UserRoles.MANAGER or self.is_admin
 
 
-class UserResponse(BaseClass):
+class UserResponse(BaseModel):
     registration: Annotated[
         str, Field(description='The registration of the user')
     ]

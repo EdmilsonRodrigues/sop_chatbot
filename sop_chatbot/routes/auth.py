@@ -13,6 +13,7 @@ from ..models.users import (
     UserRoles,
 )
 from ..services.auth import Auth, Token
+from .dependencies import UserSession
 
 router = APIRouter(prefix='/auth', tags=['Auth'])
 
@@ -84,4 +85,13 @@ async def admin_login(
             headers={'WWW-Authenticate': 'Bearer'},
         )
     jwt = Auth.generate_jwt(user.registration)
+    return Token(access_token=jwt)
+
+
+@router.post('/refresh')
+async def refresh(user_session: UserSession):
+    """
+    Refresh the user's token.
+    """
+    jwt = Auth.generate_jwt(user_session.registration)
     return Token(access_token=jwt)
