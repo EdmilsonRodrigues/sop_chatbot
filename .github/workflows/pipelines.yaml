@@ -1,0 +1,33 @@
+name: Pipeline
+on: [push, pull_request]
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.13'
+            
+            - name: Install uv
+              run: pipx install uv
+
+            - name: Install dependencies
+              run: uv sync --all-groups
+              
+            - name: Run lint and format
+              run: |
+                make format
+                make lint
+                make format
+
+            - name: Type check
+              run: make type-check
+
+            - name: Run tests
+              run: make ci-tests
