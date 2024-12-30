@@ -1,26 +1,29 @@
 .PHONY: format lint type-check
 format:
-	ruff format
+	uv run ruff format
 lint:
-	ruff check --fix
-	ruff check --diff
+	uv run ruff check --fix
+	uv run ruff check --diff
 type-check:
-	mypy --html-report docs/reports -m sop_chatbot --strict
+	uv run mypy --html-report docs/reports -m sop_chatbot --strict
 
-.PHONY: test test-report debug-tests
+.PHONY: test test-report debug-tests ci-tests
 test:
-	pytest -vvvx tests --cov=sop_chatbot --cov-report=html --durations=5
+	uv run pytest -vvvx tests --cov=sop_chatbot --cov-report=html --durations=5
 test-report:
-	pytest -vvv tests --cov=sop_chatbot --durations=5 | tee docs/reports/test_results.txt
-	coverage html
+	uv run pytest -vvv tests --cov=sop_chatbot --durations=5 | tee docs/reports/test_results.txt
+	uv run coverage html
 debug-tests:
-	pytest -vvvx tests --cov=sop_chatbot --cov-report=html --durations=5 --pdb
+	uv run pytest -vvvx tests --cov=sop_chatbot --cov-report=html --durations=5 --pdb
+ci-tests:
+	uv run pytest -vvv tests
+
 
 .PHONY: run production-run
 run:
-	uvicorn sop_chatbot.main:app --host=0.0.0.0 --port=8000 --reload --loop=uvloop
+	uv run uvicorn sop_chatbot.main:app --host=0.0.0.0 --port=8000 --reload --loop=uvloop
 production-run:
-	uvicorn sop_chatbot.main:app --host=0.0.0.0 --port=8000 --loop=uvloop --workers=4
+	uv run uvicorn sop_chatbot.main:app --host=0.0.0.0 --port=8000 --loop=uvloop --workers=4
 
 .PHONY: dev-tests pre-commit
 dev-tests: format lint format type-check test
