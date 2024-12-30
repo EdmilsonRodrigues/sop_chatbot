@@ -18,8 +18,10 @@ jobs:
               run: pipx install uv
 
             - name: Install dependencies
-              run: uv sync --all-groups
-              
+              run: |
+                uv sync --all-groups
+                source .venv/bin/activate
+               
             - name: Run lint and format
               run: |
                 make format
